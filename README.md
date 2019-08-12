@@ -15,10 +15,11 @@ If you want to know more regarding the development of yar, consult the Future Pl
 
 ## Installation
 To install this you can simply run the following commands.
-
 ```
 go get github.com/Furduhlutur/yar
 ```
+
+Just make sure that you have the GOPATH environment variable set in your preferred shell rc and that the go/bin directory is in your PATH.
 
 ## Usage
 Want to search for secrets in an organization?
@@ -42,7 +43,7 @@ yar -o orgname -u username -r reponame
 ```
 
 Have your own predefined rules?
-Rules are stored in a JSON file with the following format. If you are familiar with truffleHog you already know how to use this.
+Rules are stored in a JSON file with the following format. If you are familiar with truffleHog you already know how to use this. Example:
 ```
 {
   "Reason": "regex-rule"
@@ -63,6 +64,10 @@ Want the best of both worlds?
 yar -u username --both
 ```
 
+Want to search as an authenticated user? Simply add your github token to environment variables.
+```
+export YAR_GITHUB_TOKEN=YOUR_TOKEN_HERE
+```
 
 ## Help
 ```
@@ -95,8 +100,7 @@ Yar is in active development and there are big plans for the near future.
 Features:
 + Filename of the file that contains the secret to the finding output.
 + Environment variables for color customization of output.
-+ Ensure the project is go gettable.
-+ Add cleanup flag 
++ Add cleanup flag.
 
 Extras:
 + Add contribution guidelines so strangers can take part in the project.
