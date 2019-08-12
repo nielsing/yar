@@ -17,9 +17,7 @@ If you want to know more regarding the development of yar, consult the Future Pl
 To install this you can simply run the following commands.
 
 ```
-git clone [link here]
-cd [folder here]
-go install
+go get github.com/Furduhlutur/yar
 ```
 
 ## Usage
