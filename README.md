@@ -34,7 +34,11 @@ yar -u username
 
 Want to search for secrets in a single repository?
 ```
-yar -r reponame
+yar -r repolink
+```
+or
+```
+yar -r repopath
 ```
 
 Want to search for secrets in an organization, for a user and a repository?
