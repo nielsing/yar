@@ -2,8 +2,6 @@ package robber
 
 import (
 	"context"
-	"golang.org/x/oauth2"
-	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"io/ioutil"
 	"log"
 	"math"
@@ -11,6 +9,9 @@ import (
 	"os"
 	"path"
 	"strings"
+
+	"golang.org/x/oauth2"
+	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
 const (

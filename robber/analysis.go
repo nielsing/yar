@@ -1,9 +1,10 @@
 package robber
 
 import (
+	"strings"
+
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
-	"strings"
 )
 
 const (
@@ -31,11 +32,12 @@ func AnalyzeRegexDiff(m *Middleware, commit *object.Commit, diff string, reponam
 
 	for lineNum, line := range lines {
 		for _, rule := range m.Rules {
-			if found := rule.Regex.Match([]byte(line)); found {
+			if found := rule.Regex.FindString(line); found != "" {
 				start, end := Max(0, lineNum-*m.Flags.Context), Min(numOfLines, lineNum+*m.Flags.Context+1)
 				context := lines[start:end]
 				newDiff := strings.Join(context, "\n")
-				secret := rule.Regex.FindIndex([]byte(newDiff))
+				secret := []int{strings.Index(newDiff, found)}
+				secret = append(secret, secret[0]+len(found))
 
 				newSecret := false
 				secretString := newDiff[secret[0]:secret[1]]
