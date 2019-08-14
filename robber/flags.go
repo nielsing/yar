@@ -17,6 +17,7 @@ type Flags struct {
 	Both      *bool
 	NoContext *bool
 	Debug     *bool
+	CleanUp   *bool
 }
 
 func ParseFlags() *Flags {
@@ -74,6 +75,13 @@ func ParseFlags() *Flags {
 
 		Debug: parser.Flag("d", "debug", &argparse.Options{
 			Required: false,
+			Default:  false,
+		}),
+
+		// If cleanup is set, yar will ignore all other flags and only perform cleanup
+		CleanUp: parser.Flag("", "--cleanup", &argparse.Options{
+			Required: false,
+			Help:     "Remove all temporary directories used for cloning",
 			Default:  false,
 		}),
 	}

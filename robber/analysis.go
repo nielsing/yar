@@ -11,35 +11,29 @@ const (
 	Hexchars = "1234567890abcdefABCDEF"
 )
 
-// Grunt function for analyzing a diff using Shannon's Entropy
+// AnalyzeEntropyDiff breaks a given diff into words and finds valid base64 and hex
+// strings within a word and finally runs an entropy check on the valid string.
 // Code taken from https://github.com/dxa4481/truffleHog
-func AnalyzeEntropyDiff(m *Middleware, commit *object.Commit, diff string, reponame string) {
+func AnalyzeEntropyDiff(m *Middleware, commit *object.Commit, diff string, reponame string, filepath string) {
 	words := strings.Fields(diff)
 	for _, word := range words {
 		b64strings := FindValidStrings(word, B64chars)
 		hexstrings := FindValidStrings(word, Hexchars)
-		PrintEntropyFinding(b64strings, m, diff, reponame, commit, 4.5)
-		PrintEntropyFinding(hexstrings, m, diff, reponame, commit, 3)
+		PrintEntropyFinding(b64strings, m, diff, reponame, commit, 4.5, filepath)
+		PrintEntropyFinding(hexstrings, m, diff, reponame, commit, 3, filepath)
 	}
 }
 
-// Grunt function for analyzing a diff using regex rules
-func AnalyzeRegexDiff(m *Middleware, commit *object.Commit, diff string, reponame string) {
+// AnalyzeRegexDiff runs line by line on a given diff and runs each given regex rule on the line.
+func AnalyzeRegexDiff(m *Middleware, commit *object.Commit, diff string, reponame string, filepath string) {
 	lines := strings.Split(diff, "\n")
 	numOfLines := len(lines)
 
 	for lineNum, line := range lines {
 		for _, rule := range m.Rules {
 			if found := rule.Regex.Match([]byte(line)); found {
-				context := []string{lines[lineNum]}
-				for i := 1; i <= *m.Flags.Context; i++ {
-					if lineNum-i >= 0 {
-						context = append([]string{lines[lineNum-i]}, context...)
-					}
-					if lineNum+i < numOfLines {
-						context = append(context, lines[lineNum+i])
-					}
-				}
+				start, end := Max(0, lineNum-*m.Flags.Context), Min(numOfLines, lineNum+*m.Flags.Context+1)
+				context := lines[start:end]
 				newDiff := strings.Join(context, "\n")
 				secret := rule.Regex.FindIndex([]byte(newDiff))
 
@@ -50,15 +44,16 @@ func AnalyzeRegexDiff(m *Middleware, commit *object.Commit, diff string, reponam
 					newSecret = true
 				}
 				if newSecret {
-					finding := NewFinding(rule.Reason, secret, commit, reponame)
+					finding := NewFinding(rule.Reason, secret, commit, reponame, filepath)
 					m.Logger.LogFinding(finding, m, newDiff)
+					break
 				}
 			}
 		}
 	}
 }
 
-// Grunt function for analyzing a repo
+// AnalyzeRepo opens a given repository and extracts all diffs from it for later analysis.
 func AnalyzeRepo(m *Middleware, reponame string) {
 	repo, err := OpenRepo(reponame)
 	if err != nil {
@@ -84,26 +79,27 @@ func AnalyzeRepo(m *Middleware, reponame string) {
 		}
 
 		for _, change := range changes {
-			diffs, err := GetDiffs(change)
+			diffs, filepath, err := GetDiffs(change)
 			if err != nil {
 				m.Logger.LogWarn("Unable to get diffs of %s: %s\n", change, err)
 				break
 			}
 			for _, diff := range diffs {
 				if *m.Flags.Both {
-					AnalyzeRegexDiff(m, commit, diff, reponame)
-					AnalyzeEntropyDiff(m, commit, diff, reponame)
+					AnalyzeRegexDiff(m, commit, diff, reponame, filepath)
+					AnalyzeEntropyDiff(m, commit, diff, reponame, filepath)
 				} else if *m.Flags.Entropy {
-					AnalyzeEntropyDiff(m, commit, diff, reponame)
+					AnalyzeEntropyDiff(m, commit, diff, reponame, filepath)
 				} else {
-					AnalyzeRegexDiff(m, commit, diff, reponame)
+					AnalyzeRegexDiff(m, commit, diff, reponame, filepath)
 				}
 			}
 		}
 	}
 }
 
-// Grunt function for analyzing a user
+// AnalyzeUser simply sends a GET request on githubs API for a given username
+// and starts and analysis of each of the user's repositories.
 func AnalyzeUser(m *Middleware, username string) {
 	repos := GetUserRepos(m, username)
 	for _, repo := range repos {
@@ -111,7 +107,8 @@ func AnalyzeUser(m *Middleware, username string) {
 	}
 }
 
-// Grunt function for analyzing an organization
+// AnalyzeOrg simply sends two GET requests to githubs API, one for a given organizations
+// repositories and one for its' members.
 func AnalyzeOrg(m *Middleware, orgname string) {
 	repos := GetOrgRepos(m, orgname)
 	members := GetOrgMembers(m, orgname)

@@ -5,6 +5,7 @@ import (
 	"github.com/fatih/color"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"os"
+	"strings"
 	"sync"
 	"time"
 )
@@ -41,6 +42,7 @@ type Finding struct {
 	Secret        []int
 	Diff          string
 	RepoName      string
+	Filepath      string
 }
 
 type Logger struct {
@@ -48,7 +50,7 @@ type Logger struct {
 	Debug bool
 }
 
-func NewFinding(reason string, secret []int, commit *object.Commit, reponame string) *Finding {
+func NewFinding(reason string, secret []int, commit *object.Commit, reponame string, filepath string) *Finding {
 	finding := &Finding{
 		CommitHash:    commit.Hash.String(),
 		CommitMessage: commit.Message,
@@ -58,6 +60,7 @@ func NewFinding(reason string, secret []int, commit *object.Commit, reponame str
 		Reason:        reason,
 		Secret:        secret,
 		RepoName:      reponame,
+		Filepath:      filepath,
 	}
 	return finding
 }
@@ -99,6 +102,8 @@ func (l *Logger) LogFinding(f *Finding, m *Middleware, diff string) {
 	info.Println(seperator)
 	info.Printf("Reason: ")
 	data.Println(f.Reason)
+	info.Printf("Filepath: ")
+	data.Println(f.Filepath)
 	info.Printf("Repo name: ")
 	data.Println(f.RepoName)
 	info.Printf("Committer: ")
@@ -108,7 +113,7 @@ func (l *Logger) LogFinding(f *Finding, m *Middleware, diff string) {
 	info.Printf("Date of commit: ")
 	data.Println(f.DateOfCommit)
 	info.Printf("Commit message: ")
-	data.Println(f.CommitMessage)
+	data.Printf("%s\n\n", strings.Trim(f.CommitMessage, "\n"))
 	if *m.Flags.NoContext {
 		secret.Printf("%s\n\n", diff[f.Secret[0]:f.Secret[1]])
 	} else {

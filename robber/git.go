@@ -2,6 +2,7 @@ package robber
 
 import (
 	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing/format/diff"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"io/ioutil"
 	"os"
@@ -100,23 +101,36 @@ func GetCommitChanges(commit *object.Commit) (object.Changes, error) {
 	return changes, nil
 }
 
+func getFilepath(file diff.FilePatch) string {
+	_, to := file.Files()
+	if to == nil {
+		return ""
+	}
+	return to.Path()
+}
+
 // GetDiffs gets all diffs which are either of type addage or removal
 // for a change in a commit.
-func GetDiffs(change *object.Change) ([]string, error) {
+func GetDiffs(change *object.Change) ([]string, string, error) {
 	patch, err := change.Patch()
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	var diffs []string
+	var filepath string
 	for _, file := range patch.FilePatches() {
+		if file.IsBinary() {
+			continue
+		}
+		filepath = getFilepath(file)
 		for _, chunk := range file.Chunks() {
-			if chunk.Type() == 0 {
+			if chunk.Type() != 1 {
 				continue
 			}
 			diff := strings.Trim(chunk.Content(), " \n")
 			diffs = append(diffs, diff)
 		}
 	}
-	return diffs, nil
+	return diffs, filepath, nil
 }

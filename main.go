@@ -7,6 +7,9 @@ import (
 // Entry function handles CLI arguments and executes accordingly
 func main() {
 	m := robber.NewMiddleware()
+	if *m.Flags.CleanUp {
+		robber.CleanUp()
+	}
 	if *m.Flags.Org != "" {
 		robber.AnalyzeOrg(m, *m.Flags.Org)
 	}

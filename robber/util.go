@@ -17,7 +17,7 @@ const (
 	EnvTokenVariable = "YAR_GITHUB_TOKEN"
 )
 
-// CleanUp deletes all temp directories which were created for clonging of repositories.
+// CleanUp deletes all temp directories which were created for cloning of repositories.
 func CleanUp() {
 	files, err := ioutil.ReadDir(os.TempDir())
 	if err != nil {
@@ -33,6 +33,7 @@ func CleanUp() {
 			}
 		}
 	}
+	os.Exit(0)
 }
 
 // FindValidStrings finds parts of a word which are valid in respect
@@ -66,11 +67,11 @@ func EntropyCheck(data string, values string) float64 {
 		return 0.0
 	}
 
-	var entropy float64 = 0.0
+	var entropy float64
 	for _, letter := range values {
-		p_x := float64(strings.Count(data, string(letter))) / float64(len(data))
-		if p_x > 0 {
-			entropy += -(p_x * math.Log2(p_x))
+		pX := float64(strings.Count(data, string(letter))) / float64(len(data))
+		if pX > 0 {
+			entropy += -(pX * math.Log2(pX))
 		}
 	}
 	return entropy
@@ -103,7 +104,7 @@ func FindContext(diff string, secret string, contextNum int) (string, []int) {
 
 // PrintEntropyFinding checks for a given validString set whether the threshold is broken and if it is
 // finds the context around the secret of the diff and prints it along with the secret.
-func PrintEntropyFinding(validStrings []string, m *Middleware, diff string, reponame string, commit *object.Commit, threshold float64) {
+func PrintEntropyFinding(validStrings []string, m *Middleware, diff string, reponame string, commit *object.Commit, threshold float64, filepath string) {
 	for _, validString := range validStrings {
 		entropy := EntropyCheck(validString, B64chars)
 		if entropy > threshold {
@@ -111,7 +112,7 @@ func PrintEntropyFinding(validStrings []string, m *Middleware, diff string, repo
 			secretString := context[indexes[0]:indexes[1]]
 			if !m.SecretExists(reponame, secretString) {
 				m.AddSecret(reponame, secretString)
-				m.Logger.LogFinding(NewFinding("Entropy Check", indexes, commit, reponame), m, context)
+				m.Logger.LogFinding(NewFinding("Entropy Check", indexes, commit, reponame, filepath), m, context)
 			}
 		}
 	}
@@ -139,3 +140,17 @@ func GetGoPath() string {
 
 // GetEnvColors retreives color settings from env variables and returns them.
 func GetEnvColors() {}
+
+func Max(a, b int) int {
+	if a < b {
+		return b
+	}
+	return a
+}
+
+func Min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
