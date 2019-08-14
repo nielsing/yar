@@ -16,5 +16,5 @@ func main() {
 	if *m.Flags.Repo != "" {
 		robber.AnalyzeRepo(m, *m.Flags.Repo)
 	}
-	robber.CleanUp()
+	robber.CleanUp(m)
 }

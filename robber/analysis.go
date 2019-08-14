@@ -3,7 +3,6 @@ package robber
 import (
 	"strings"
 
-	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 )
 
@@ -15,19 +14,19 @@ const (
 // AnalyzeEntropyDiff breaks a given diff into words and finds valid base64 and hex
 // strings within a word and finally runs an entropy check on the valid string.
 // Code taken from https://github.com/dxa4481/truffleHog
-func AnalyzeEntropyDiff(m *Middleware, commit *object.Commit, diff string, reponame string, filepath string) {
-	words := strings.Fields(diff)
+func AnalyzeEntropyDiff(m *Middleware, diffObject *DiffObject) {
+	words := strings.Fields(*diffObject.Diff)
 	for _, word := range words {
 		b64strings := FindValidStrings(word, B64chars)
 		hexstrings := FindValidStrings(word, Hexchars)
-		PrintEntropyFinding(b64strings, m, diff, reponame, commit, 4.5, filepath)
-		PrintEntropyFinding(hexstrings, m, diff, reponame, commit, 3, filepath)
+		PrintEntropyFinding(b64strings, m, diffObject, 4.5)
+		PrintEntropyFinding(hexstrings, m, diffObject, 3)
 	}
 }
 
 // AnalyzeRegexDiff runs line by line on a given diff and runs each given regex rule on the line.
-func AnalyzeRegexDiff(m *Middleware, commit *object.Commit, diff string, reponame string, filepath string) {
-	lines := strings.Split(diff, "\n")
+func AnalyzeRegexDiff(m *Middleware, diffObject *DiffObject) {
+	lines := strings.Split(*diffObject.Diff, "\n")
 	numOfLines := len(lines)
 
 	for lineNum, line := range lines {
@@ -41,12 +40,12 @@ func AnalyzeRegexDiff(m *Middleware, commit *object.Commit, diff string, reponam
 
 				newSecret := false
 				secretString := newDiff[secret[0]:secret[1]]
-				if !m.SecretExists(reponame, secretString) {
-					m.AddSecret(reponame, secretString)
+				if !m.SecretExists(*diffObject.Reponame, secretString) {
+					m.AddSecret(*diffObject.Reponame, secretString)
 					newSecret = true
 				}
 				if newSecret {
-					finding := NewFinding(rule.Reason, secret, commit, reponame, filepath)
+					finding := NewFinding(rule.Reason, secret, diffObject)
 					m.Logger.LogFinding(finding, m, newDiff)
 					break
 				}
@@ -90,13 +89,14 @@ func AnalyzeRepo(m *Middleware, reponame string) {
 				break
 			}
 			for _, diff := range diffs {
+				diffObject := NewDiffObject(commit, &diff, &reponame, &filepath)
 				if *m.Flags.Both {
-					AnalyzeRegexDiff(m, commit, diff, reponame, filepath)
-					AnalyzeEntropyDiff(m, commit, diff, reponame, filepath)
+					AnalyzeRegexDiff(m, diffObject)
+					AnalyzeEntropyDiff(m, diffObject)
 				} else if *m.Flags.Entropy {
-					AnalyzeEntropyDiff(m, commit, diff, reponame, filepath)
+					AnalyzeEntropyDiff(m, diffObject)
 				} else {
-					AnalyzeRegexDiff(m, commit, diff, reponame, filepath)
+					AnalyzeRegexDiff(m, diffObject)
 				}
 			}
 		}

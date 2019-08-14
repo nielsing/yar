@@ -1,13 +1,32 @@
 package robber
 
 import (
-	"gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing/format/diff"
-	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing/format/diff"
+	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
+
+// DiffObject holds everything that is needed to analyze a diff.
+type DiffObject struct {
+	Commit   *object.Commit
+	Diff     *string
+	Reponame *string
+	Filepath *string
+}
+
+// NewDiffObject returns a new DiffObject.
+func NewDiffObject(commit *object.Commit, diff, reponame, filepath *string) *DiffObject {
+	return &DiffObject{
+		Commit:   commit,
+		Diff:     diff,
+		Reponame: reponame,
+		Filepath: filepath,
+	}
+}
 
 // cloneRepo creates a temp directory in the OS's temp directory
 // and clones the given URL into it.

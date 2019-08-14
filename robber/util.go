@@ -3,7 +3,6 @@ package robber
 import (
 	"context"
 	"io/ioutil"
-	"log"
 	"math"
 	"net/http"
 	"os"
@@ -11,7 +10,6 @@ import (
 	"strings"
 
 	"golang.org/x/oauth2"
-	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
 const (
@@ -19,10 +17,10 @@ const (
 )
 
 // CleanUp deletes all temp directories which were created for cloning of repositories.
-func CleanUp() {
+func CleanUp(m *Middleware) {
 	files, err := ioutil.ReadDir(os.TempDir())
 	if err != nil {
-		log.Println("Something extremely bad is going on!")
+		m.Logger.LogFail("Something extremely bad is going on!\n")
 		os.Exit(1)
 	}
 
@@ -30,7 +28,7 @@ func CleanUp() {
 		if strings.HasPrefix(file.Name(), "yar") {
 			err := os.RemoveAll(path.Join(os.TempDir(), file.Name()))
 			if err != nil {
-				log.Printf("Unable to remove %s\n", file.Name())
+				m.Logger.LogInfo("Unable to remove %s\n", file.Name())
 			}
 		}
 	}
@@ -79,22 +77,14 @@ func EntropyCheck(data string, values string) float64 {
 }
 
 // FindContext finds context lines of an entropy finding.
-func FindContext(diff string, secret string, contextNum int) (string, []int) {
+func FindContext(m *Middleware, diff string, secret string) (string, []int) {
 	lines := strings.Split(diff, "\n")
 	numOfLines := len(lines)
-	context := []string{}
 
 	for lineNum, line := range lines {
 		if strings.Contains(line, secret) {
-			context = append(context, lines[lineNum])
-			for i := 1; i <= contextNum; i++ {
-				if lineNum-i >= 0 {
-					context = append([]string{lines[lineNum-i]}, context...)
-				}
-				if lineNum+i < numOfLines {
-					context = append(context, lines[lineNum+i])
-				}
-			}
+			start, end := Max(0, lineNum-*m.Flags.Context), Min(numOfLines, lineNum+*m.Flags.Context+1)
+			context := lines[start:end]
 			newDiff := strings.Join(context, "\n")
 			index := strings.Index(newDiff, secret)
 			return newDiff, []int{index, index + len(secret)}
@@ -105,15 +95,15 @@ func FindContext(diff string, secret string, contextNum int) (string, []int) {
 
 // PrintEntropyFinding checks for a given validString set whether the threshold is broken and if it is
 // finds the context around the secret of the diff and prints it along with the secret.
-func PrintEntropyFinding(validStrings []string, m *Middleware, diff string, reponame string, commit *object.Commit, threshold float64, filepath string) {
+func PrintEntropyFinding(validStrings []string, m *Middleware, diffObject *DiffObject, threshold float64) {
 	for _, validString := range validStrings {
 		entropy := EntropyCheck(validString, B64chars)
 		if entropy > threshold {
-			context, indexes := FindContext(diff, validString, *m.Flags.Context)
+			context, indexes := FindContext(m, *diffObject.Diff, validString)
 			secretString := context[indexes[0]:indexes[1]]
-			if !m.SecretExists(reponame, secretString) {
-				m.AddSecret(reponame, secretString)
-				m.Logger.LogFinding(NewFinding("Entropy Check", indexes, commit, reponame, filepath), m, context)
+			if !m.SecretExists(*diffObject.Reponame, secretString) {
+				m.AddSecret(*diffObject.Reponame, secretString)
+				m.Logger.LogFinding(NewFinding("Entropy Check", indexes, diffObject), m, context)
 			}
 		}
 	}

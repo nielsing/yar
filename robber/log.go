@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
 const (
@@ -99,17 +98,17 @@ func NewLogger(debug bool) *Logger {
 }
 
 // NewFinding simply returns a new finding struct.
-func NewFinding(reason string, secret []int, commit *object.Commit, reponame string, filepath string) *Finding {
+func NewFinding(reason string, secret []int, diffObject *DiffObject) *Finding {
 	finding := &Finding{
-		CommitHash:    commit.Hash.String(),
-		CommitMessage: commit.Message,
-		Committer:     commit.Committer.Name,
-		DateOfCommit:  commit.Committer.When.Format(time.RFC1123),
-		Email:         commit.Committer.Email,
+		CommitHash:    diffObject.Commit.Hash.String(),
+		CommitMessage: diffObject.Commit.Message,
+		Committer:     diffObject.Commit.Committer.Name,
+		DateOfCommit:  diffObject.Commit.Committer.When.Format(time.RFC1123),
+		Email:         diffObject.Commit.Committer.Email,
 		Reason:        reason,
 		Secret:        secret,
-		RepoName:      reponame,
-		Filepath:      filepath,
+		RepoName:      *diffObject.Reponame,
+		Filepath:      *diffObject.Filepath,
 	}
 	return finding
 }
