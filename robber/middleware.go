@@ -23,6 +23,10 @@ func NewMiddleware() *Middleware {
 		Repos:   []string{""},
 		Users:   []string{""},
 	}
+	// If CleanUp flag is given, handle immediately
+	if *m.Flags.CleanUp {
+		CleanUp()
+	}
 	m.Logger = NewLogger(*m.Flags.Debug)
 	ParseRegex(m)
 	m.Client = github.NewClient(GetAccessToken(m))
