@@ -8,16 +8,17 @@ import (
 )
 
 type Flags struct {
-	Org       *string
-	User      *string
-	Repo      *string
-	Rules     *os.File
-	Context   *int
-	Entropy   *bool
-	Both      *bool
-	NoContext *bool
-	Debug     *bool
-	CleanUp   *bool
+	Org         *string
+	User        *string
+	Repo        *string
+	Rules       *os.File
+	Context     *int
+	Entropy     *bool
+	Both        *bool
+	NoContext   *bool
+	Debug       *bool
+	CleanUp     *bool
+	CommitDepth *int
 }
 
 func ParseFlags() *Flags {
@@ -83,6 +84,12 @@ func ParseFlags() *Flags {
 			Required: false,
 			Help:     "Remove all temporary directories used for cloning",
 			Default:  false,
+		}),
+
+		CommitDepth: parser.Int("", "depth", &argparse.Options{
+			Required: false,
+			Help:     "Specify the depth limit of commits fetched when cloning",
+			Default:  100000,
 		}),
 	}
 

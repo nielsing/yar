@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	EnvTokenVariable = "YAR_GITHUB_TOKEN"
+	envTokenVariable = "YAR_GITHUB_TOKEN"
 )
 
 // CleanUp deletes all temp directories which were created for cloning of repositories.
@@ -121,7 +121,7 @@ func PrintEntropyFinding(validStrings []string, m *Middleware, diff string, repo
 
 // GetAccessToken retreives access token from env variables and returns an oauth2 client.
 func GetAccessToken(m *Middleware) *http.Client {
-	accessToken := os.Getenv(EnvTokenVariable)
+	accessToken := os.Getenv(envTokenVariable)
 	if accessToken == "" {
 		m.Logger.LogWarn("No access token found for GitHub, consider adding it by running 'export YAR_GITHUB_TOKEN=YOUR_TOKEN'.\n")
 		return nil
@@ -140,8 +140,18 @@ func GetGoPath() string {
 }
 
 // GetEnvColors retreives color settings from env variables and returns them.
-func GetEnvColors() {}
+func GetEnvColors() map[int]string {
+	colors := map[int]string{}
+	values := []string{"DEBUG", "SECRET", "INFO", "DATA", "SUCC", "WARN", "FAIL"}
+	baseValue := "YAR_COLOR_"
 
+	for index, value := range values {
+		colors[index] = os.Getenv(baseValue + value)
+	}
+	return colors
+}
+
+// Max returns the larger of two given ints
 func Max(a, b int) int {
 	if a < b {
 		return b
@@ -149,6 +159,7 @@ func Max(a, b int) int {
 	return a
 }
 
+// Min returns the smaller of two given ints
 func Min(a, b int) int {
 	if a < b {
 		return a

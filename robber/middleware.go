@@ -23,7 +23,7 @@ func NewMiddleware() *Middleware {
 		Repos:   []string{""},
 		Users:   []string{""},
 	}
-	m.Logger = &Logger{Debug: *m.Flags.Debug}
+	m.Logger = NewLogger(*m.Flags.Debug)
 	ParseRegex(m)
 	m.Client = github.NewClient(GetAccessToken(m))
 	return m

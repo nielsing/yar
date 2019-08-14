@@ -11,13 +11,14 @@ import (
 
 // cloneRepo creates a temp directory in the OS's temp directory
 // and clones the given URL into it.
-func cloneRepo(url string) (*git.Repository, error) {
+func cloneRepo(url string, depth int) (*git.Repository, error) {
 	dir, err := ioutil.TempDir("", "yar")
 	if err != nil {
 		return nil, err
 	}
 	repo, err := git.PlainClone(dir, false, &git.CloneOptions{
-		URL: url,
+		URL:   url,
+		Depth: depth,
 	})
 	if err != nil {
 		return nil, err
@@ -28,7 +29,7 @@ func cloneRepo(url string) (*git.Repository, error) {
 // OpenRepo opens a repository found at the given path.
 // If the path points to a nonexistant repository it assumes that an URL
 // was given and tries to clone it instead.
-func OpenRepo(path string) (*git.Repository, error) {
+func OpenRepo(path string, depth int) (*git.Repository, error) {
 	var repo *git.Repository
 	if _, err := os.Stat(path); err == nil {
 		repo, err = git.PlainOpen(path)
@@ -38,7 +39,7 @@ func OpenRepo(path string) (*git.Repository, error) {
 		return repo, nil
 	}
 
-	repo, err := cloneRepo(path)
+	repo, err := cloneRepo(path, depth)
 	if err != nil {
 		return nil, err
 	}

@@ -22,7 +22,27 @@ const (
 
 const seperator = "--------------------------------------------------------"
 
-var LogColors = map[int]*color.Color{
+var validColors = map[string]*color.Color{
+	"black":     color.New(color.FgBlack),
+	"blue":      color.New(color.FgBlue),
+	"cyan":      color.New(color.FgCyan),
+	"green":     color.New(color.FgGreen),
+	"magenta":   color.New(color.FgMagenta),
+	"red":       color.New(color.FgRed),
+	"white":     color.New(color.FgWhite),
+	"yellow":    color.New(color.FgYellow),
+	"hiBlack":   color.New(color.FgHiBlack),
+	"hiBlue":    color.New(color.FgHiBlue),
+	"hiCyan":    color.New(color.FgHiCyan),
+	"hiGreen":   color.New(color.FgHiGreen),
+	"hiMagenta": color.New(color.FgHiMagenta),
+	"hiRed":     color.New(color.FgHiRed),
+	"hiWhite":   color.New(color.FgHiWhite),
+	"hiYellow":  color.New(color.FgHiYellow),
+}
+
+// Default colors are set
+var logColors = map[int]*color.Color{
 	debug:  color.New(color.FgBlue),
 	secret: color.New(color.FgHiYellow).Add(color.Bold),
 	info:   color.New(color.FgHiWhite),
@@ -50,6 +70,30 @@ type Logger struct {
 	Debug bool
 }
 
+func setColors() {
+	colors := GetEnvColors()
+	for colorType := debug; colorType <= fail; colorType++ {
+		if empty, _ := colors[colorType]; empty == "" {
+			continue
+		}
+		fields := strings.Fields(colors[colorType])
+		if val, ok := validColors[fields[0]]; ok {
+			if len(fields) > 1 && fields[1] == "bold" {
+				logColors[colorType] = val.Add(color.Bold)
+				continue
+			}
+			logColors[colorType] = val
+		}
+	}
+}
+
+func NewLogger(debug bool) *Logger {
+	setColors()
+	return &Logger{
+		Debug: debug,
+	}
+}
+
 func NewFinding(reason string, secret []int, commit *object.Commit, reponame string, filepath string) *Finding {
 	finding := &Finding{
 		CommitHash:    commit.Hash.String(),
@@ -72,7 +116,7 @@ func (l *Logger) log(level int, format string, a ...interface{}) {
 		return
 	}
 
-	if c, ok := LogColors[level]; ok {
+	if c, ok := logColors[level]; ok {
 		c.Printf(format, a...)
 	} else {
 		fmt.Printf(format, a...)
@@ -84,8 +128,8 @@ func (l *Logger) log(level int, format string, a ...interface{}) {
 }
 
 func (l *Logger) logSecret(diff string, booty []int, contextNum int) {
-	data, _ := LogColors[data]
-	secret, _ := LogColors[secret]
+	data, _ := logColors[data]
+	secret, _ := logColors[secret]
 
 	data.Printf("%s", diff[:booty[0]])
 	secret.Printf("%s", diff[booty[0]:booty[1]])
@@ -95,15 +139,17 @@ func (l *Logger) logSecret(diff string, booty []int, contextNum int) {
 func (l *Logger) LogFinding(f *Finding, m *Middleware, diff string) {
 	l.Lock()
 	defer l.Unlock()
-	info, _ := LogColors[info]
-	data, _ := LogColors[data]
-	secret, _ := LogColors[secret]
+	info, _ := logColors[info]
+	data, _ := logColors[data]
+	secret, _ := logColors[secret]
 
 	info.Println(seperator)
 	info.Printf("Reason: ")
 	data.Println(f.Reason)
-	info.Printf("Filepath: ")
-	data.Println(f.Filepath)
+	if f.Filepath != "" {
+		info.Printf("Filepath: ")
+		data.Println(f.Filepath)
+	}
 	info.Printf("Repo name: ")
 	data.Println(f.RepoName)
 	info.Printf("Committer: ")

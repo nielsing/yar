@@ -57,7 +57,7 @@ func AnalyzeRegexDiff(m *Middleware, commit *object.Commit, diff string, reponam
 
 // AnalyzeRepo opens a given repository and extracts all diffs from it for later analysis.
 func AnalyzeRepo(m *Middleware, reponame string) {
-	repo, err := OpenRepo(reponame)
+	repo, err := OpenRepo(reponame, *m.Flags.CommitDepth)
 	if err != nil {
 		if err == transport.ErrEmptyRemoteRepository {
 			m.Logger.LogWarn("%s is empty\n", reponame)
@@ -75,6 +75,9 @@ func AnalyzeRepo(m *Middleware, reponame string) {
 	for index := range commits {
 		commit := commits[len(commits)-index-1]
 		changes, err := GetCommitChanges(commit)
+		if strings.Contains(reponame, "Competitive") {
+			m.Logger.LogInfo("Commit: %q\n", commit)
+		}
 		if err != nil {
 			m.Logger.LogWarn("Unable to get commit changes for hash %s: %s\n", commit.Hash, err)
 			continue
