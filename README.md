@@ -1,6 +1,8 @@
 # (Y)et (A)nother (R)obber: Sail ye seas of git for booty is to be found
 
-![Yar the pirate gopher](https://raw.githubusercontent.com/Furduhlutur/yar/master/images/yargopher3.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Furduhlutur/yar/master/images/yargopher3.png" alt="Yar the pirate gopher"/>
+</p>
 
 Sail ho! Yar is a tool for plunderin' organizations, users and/or repositories...
 
