@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	debug = iota
+	verbose = iota
 	secret
 	info
 	data
@@ -43,13 +43,13 @@ var validColors = map[string]*color.Color{
 
 // Default colors are set
 var logColors = map[int]*color.Color{
-	debug:  color.New(color.FgBlue),
-	secret: color.New(color.FgHiYellow).Add(color.Bold),
-	info:   color.New(color.FgHiWhite),
-	data:   color.New(color.FgHiBlue),
-	succ:   color.New(color.FgGreen),
-	warn:   color.New(color.FgRed),
-	fail:   color.New(color.FgRed).Add(color.Bold),
+	verbose: color.New(color.FgBlue),
+	secret:  color.New(color.FgHiYellow).Add(color.Bold),
+	info:    color.New(color.FgHiWhite),
+	data:    color.New(color.FgHiBlue),
+	succ:    color.New(color.FgGreen),
+	warn:    color.New(color.FgRed),
+	fail:    color.New(color.FgRed).Add(color.Bold),
 }
 
 // Finding struct contains data of a given secret finding, used for later output of a finding.
@@ -69,12 +69,12 @@ type Finding struct {
 // Logger handles all logging to the output.
 type Logger struct {
 	sync.Mutex
-	Debug bool
+	Verbose bool
 }
 
 func setColors() {
 	colors := GetEnvColors()
-	for colorType := debug; colorType <= fail; colorType++ {
+	for colorType := verbose; colorType <= fail; colorType++ {
 		if empty, _ := colors[colorType]; empty == "" {
 			continue
 		}
@@ -90,10 +90,10 @@ func setColors() {
 }
 
 // NewLogger sets all colors as specified and returns a new logger.
-func NewLogger(debug bool) *Logger {
+func NewLogger(verbose bool) *Logger {
 	setColors()
 	return &Logger{
-		Debug: debug,
+		Verbose: verbose,
 	}
 }
 
@@ -116,7 +116,7 @@ func NewFinding(reason string, secret []int, diffObject *DiffObject) *Finding {
 func (l *Logger) log(level int, format string, a ...interface{}) {
 	l.Lock()
 	defer l.Unlock()
-	if level == debug && l.Debug == false {
+	if level == verbose && l.Verbose == false {
 		return
 	}
 
@@ -172,9 +172,9 @@ func (l *Logger) LogFinding(f *Finding, m *Middleware, diff string) {
 	}
 }
 
-// LogDebug prints to output using 'debug' colors
-func (l *Logger) LogDebug(format string, a ...interface{}) {
-	l.log(debug, format, a...)
+// LogVerbose prints to output using 'verbose' colors
+func (l *Logger) LogVerbose(format string, a ...interface{}) {
+	l.log(verbose, format, a...)
 }
 
 // LogSecret prints to output using 'secret' colors

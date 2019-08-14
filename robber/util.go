@@ -132,7 +132,7 @@ func GetGoPath() string {
 // GetEnvColors retreives color settings from env variables and returns them.
 func GetEnvColors() map[int]string {
 	colors := map[int]string{}
-	values := []string{"DEBUG", "SECRET", "INFO", "DATA", "SUCC", "WARN", "FAIL"}
+	values := []string{"VERBOSE", "SECRET", "INFO", "DATA", "SUCC", "WARN", "FAIL"}
 	baseValue := "YAR_COLOR_"
 
 	for index, value := range values {

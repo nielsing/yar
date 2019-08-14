@@ -18,7 +18,7 @@ type Flags struct {
 	Both        *bool
 	NoContext   *bool
 	Forks       *bool
-	Debug       *bool
+	Verbose     *bool
 	CleanUp     *bool
 	CommitDepth *int
 }
@@ -83,7 +83,7 @@ func ParseFlags() *Flags {
 			Default:  false,
 		}),
 
-		Debug: parser.Flag("d", "debug", &argparse.Options{
+		Verbose: parser.Flag("v", "verbose", &argparse.Options{
 			Required: false,
 			Default:  false,
 		}),

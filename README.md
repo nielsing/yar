@@ -100,13 +100,13 @@ Each color can then be suffixed with `bold`, i.e. `blue bold` to make the letter
 
 This is done through the following env variables:
 ```
-YAR_COLOR_DEBUG  -> Color of debug lines.
-YAR_COLOR_SECRET -> Color of the highlighted secret.
-YAR_COLOR_INFO   -> Color of info, that is, simple strings that tell you something.
-YAR_COLOR_DATA   -> Color of data, i.e. commit message, reason, etc.
-YAR_COLOR_SUCC   -> Color of succesful messages.
-YAR_COLOR_WARN   -> Color of warnings.
-YAR_COLOR_FAIL   -> Color of fatal warnings.
+YAR_COLOR_VERBOSE -> Color of verbose lines.
+YAR_COLOR_SECRET  -> Color of the highlighted secret.
+YAR_COLOR_INFO    -> Color of info, that is, simple strings that tell you something.
+YAR_COLOR_DATA    -> Color of data, i.e. commit message, reason, etc.
+YAR_COLOR_SUCC    -> Color of succesful messages.
+YAR_COLOR_WARN    -> Color of warnings.
+YAR_COLOR_FAIL    -> Color of fatal warnings.
 ```
 Like so `export YAR_COLOR_SECRET="hiRed bold"`.
 
@@ -114,7 +114,8 @@ Like so `export YAR_COLOR_SECRET="hiRed bold"`.
 ```
 usage: yar [-h|--help] [-o|--org "<value>"] [-u|--user "<value>"] [-r|--repo
            "<value>"] [--rules <file>] [-c|--context <integer>] [-e|--entropy]
-           [-b|--both] [-n|--no-context] [-d|--debug]
+           [-b|--both] [-n|--no-context] [-f|--forks] [-v|--verbose]
+           [--cleanup] [--depth <integer>]
 
            Sail ye seas of git for booty is to be found
 
@@ -124,14 +125,21 @@ Arguments:
   -o  --org         Organization to plunder. Default: 
   -u  --user        User to plunder. Default: 
   -r  --repo        Repository to plunder. Default: 
-      --rules       JSON file containing regex rulesets. Default: rules.json
+      --rules       JSON file containing regex rulesets. Default:
+                    /home/niels/.go/src/github.com/Furduhlutur/yar/rules.json
   -c  --context     Show N number of lines for context. Default: 2
   -e  --entropy     Search for secrets using entropy analysis. Default: false
-  -b  --both        Search by using both regex and entropy analysis. Default:
-                    false
+  -b  --both        Search by using both regex and entropy analysis. Overrides
+                    entropy flag. Default: false
   -n  --no-context  Only show the secret itself, similar to trufflehog's regex
-                    output. Default: false
-  -d  --debug  
+                    output. Overrides context flag. Default: false
+  -f  --forks       Specifies whether forked repos are included or not.
+                    Default: false
+  -v  --verbose    
+      --cleanup     Remove all temporary directories used for cloning. Default:
+                    false
+      --depth       Specify the depth limit of commits fetched when cloning.
+                    Default: 100000
 ```
 
 ## Future Plans

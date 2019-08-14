@@ -23,7 +23,7 @@ func NewMiddleware() *Middleware {
 		Secrets: make(map[string]map[string]bool),
 		Flags:   ParseFlags(),
 	}
-	m.Logger = NewLogger(*m.Flags.Debug)
+	m.Logger = NewLogger(*m.Flags.Verbose)
 	// If CleanUp flag is given, handle immediately
 	if *m.Flags.CleanUp {
 		CleanUp(m)
