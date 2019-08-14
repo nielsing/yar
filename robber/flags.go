@@ -79,7 +79,7 @@ func ParseFlags() *Flags {
 		}),
 
 		// If cleanup is set, yar will ignore all other flags and only perform cleanup
-		CleanUp: parser.Flag("", "--cleanup", &argparse.Options{
+		CleanUp: parser.Flag("", "cleanup", &argparse.Options{
 			Required: false,
 			Help:     "Remove all temporary directories used for cloning",
 			Default:  false,
@@ -95,7 +95,7 @@ func ParseFlags() *Flags {
 }
 
 func validateFlags(flags *Flags, parser *argparse.Parser) {
-	if *flags.User == "" && *flags.Repo == "" && *flags.Org == "" {
+	if *flags.User == "" && *flags.Repo == "" && *flags.Org == "" && !*flags.CleanUp {
 		fmt.Print(parser.Usage("Must give atleast one of org/user/repo"))
 		os.Exit(1)
 	}
