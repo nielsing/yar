@@ -29,9 +29,10 @@ func GetUserRepos(m *Middleware, username string) []*string {
 		handleGithubError(m, err)
 
 		for _, repo := range repos {
-			if !*repo.Fork {
-				cloneURLs = append(cloneURLs, repo.CloneURL)
+			if *repo.Fork && !*m.Flags.Forks {
+				continue
 			}
+			cloneURLs = append(cloneURLs, repo.CloneURL)
 		}
 		if resp.NextPage == 0 {
 			break
@@ -50,6 +51,9 @@ func GetOrgRepos(m *Middleware, orgname string) []*string {
 		handleGithubError(m, err)
 
 		for _, repo := range repos {
+			if *repo.Fork && !*m.Flags.Forks {
+				continue
+			}
 			cloneURLs = append(cloneURLs, repo.CloneURL)
 		}
 		if resp.NextPage == 0 {

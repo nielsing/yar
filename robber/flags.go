@@ -17,6 +17,7 @@ type Flags struct {
 	Entropy     *bool
 	Both        *bool
 	NoContext   *bool
+	Forks       *bool
 	Debug       *bool
 	CleanUp     *bool
 	CommitDepth *int
@@ -73,6 +74,12 @@ func ParseFlags() *Flags {
 		NoContext: parser.Flag("n", "no-context", &argparse.Options{
 			Required: false,
 			Help:     "Only show the secret itself, similar to trufflehog's regex output. Overrides context flag",
+			Default:  false,
+		}),
+
+		Forks: parser.Flag("f", "forks", &argparse.Options{
+			Required: false,
+			Help:     "Specifies whether forked repos are included or not",
 			Default:  false,
 		}),
 
