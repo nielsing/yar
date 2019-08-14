@@ -17,6 +17,7 @@ Read here for more information: https://golang.org/pkg/regexp/syntax/
 `
 )
 
+// Rule struct holds a given regex rule with its' reason for matching.
 type Rule struct {
 	Reason string
 	Regex  *regexp.Regexp

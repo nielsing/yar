@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 )
 
+// Flags struct keeps a hold of all of the CLI arguments that were given.
 type Flags struct {
 	Org         *string
 	User        *string
@@ -21,6 +22,7 @@ type Flags struct {
 	CommitDepth *int
 }
 
+// ParseFlags parses CLI arguments and returns them.
 func ParseFlags() *Flags {
 	parser := argparse.NewParser("yar", "Sail ye seas of git for booty is to be found")
 	flags := &Flags{

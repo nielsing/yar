@@ -2,12 +2,13 @@ package robber
 
 import (
 	"fmt"
-	"github.com/fatih/color"
-	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/fatih/color"
+	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
 const (
@@ -52,6 +53,7 @@ var logColors = map[int]*color.Color{
 	fail:   color.New(color.FgRed).Add(color.Bold),
 }
 
+// Finding struct contains data of a given secret finding, used for later output of a finding.
 type Finding struct {
 	CommitHash    string
 	CommitMessage string
@@ -65,6 +67,7 @@ type Finding struct {
 	Filepath      string
 }
 
+// Logger handles all logging to the output.
 type Logger struct {
 	sync.Mutex
 	Debug bool
@@ -87,6 +90,7 @@ func setColors() {
 	}
 }
 
+// NewLogger sets all colors as specified and returns a new logger.
 func NewLogger(debug bool) *Logger {
 	setColors()
 	return &Logger{
@@ -94,6 +98,7 @@ func NewLogger(debug bool) *Logger {
 	}
 }
 
+// NewFinding simply returns a new finding struct.
 func NewFinding(reason string, secret []int, commit *object.Commit, reponame string, filepath string) *Finding {
 	finding := &Finding{
 		CommitHash:    commit.Hash.String(),
@@ -136,6 +141,7 @@ func (l *Logger) logSecret(diff string, booty []int, contextNum int) {
 	data.Printf("%s\n\n", diff[booty[1]:])
 }
 
+// LogFinding is used to output Findings
 func (l *Logger) LogFinding(f *Finding, m *Middleware, diff string) {
 	l.Lock()
 	defer l.Unlock()
@@ -167,26 +173,32 @@ func (l *Logger) LogFinding(f *Finding, m *Middleware, diff string) {
 	}
 }
 
+// LogDebug prints to output using 'debug' colors
 func (l *Logger) LogDebug(format string, a ...interface{}) {
 	l.log(debug, format, a...)
 }
 
+// LogSecret prints to output using 'secret' colors
 func (l *Logger) LogSecret(format string, a ...interface{}) {
 	l.log(secret, format, a...)
 }
 
+// LogInfo prints to output using 'info' colors
 func (l *Logger) LogInfo(format string, a ...interface{}) {
 	l.log(info, format, a...)
 }
 
+// LogSucc prints to output using 'succ' colors
 func (l *Logger) LogSucc(format string, a ...interface{}) {
 	l.log(succ, format, a...)
 }
 
+// LogWarn prints to output using 'warn' colors
 func (l *Logger) LogWarn(format string, a ...interface{}) {
 	l.log(warn, format, a...)
 }
 
+// LogFail prints to output using 'fail' colors
 func (l *Logger) LogFail(format string, a ...interface{}) {
 	l.log(fail, format, a...)
 }
