@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func handleGithubError(m *Middleware, err error) {
+func handleGithubError(m *Middleware, err error, name string) {
 	if err == nil {
 		return
 	}
@@ -17,6 +17,9 @@ func handleGithubError(m *Middleware, err error) {
 	if strings.Contains(err.Error(), "Bad credentials") {
 		m.Logger.LogFail("Github token is invalid!\n")
 	}
+	if strings.Contains(err.Error(), "Not Found") {
+		m.Logger.LogFail("%s does not exist.\n", name)
+	}
 	m.Logger.LogFail("%s\n", err)
 }
 
@@ -26,7 +29,7 @@ func GetUserRepos(m *Middleware, username string) []*string {
 	opt := &github.RepositoryListOptions{Type: "public", ListOptions: github.ListOptions{PerPage: 100}}
 	for {
 		repos, resp, err := m.Client.Repositories.List(context.Background(), username, opt)
-		handleGithubError(m, err)
+		handleGithubError(m, err, username)
 
 		for _, repo := range repos {
 			if *repo.Fork && !*m.Flags.Forks {
@@ -48,7 +51,7 @@ func GetOrgRepos(m *Middleware, orgname string) []*string {
 	opt := &github.RepositoryListByOrgOptions{ListOptions: github.ListOptions{PerPage: 100}}
 	for {
 		repos, resp, err := m.Client.Repositories.ListByOrg(context.Background(), orgname, opt)
-		handleGithubError(m, err)
+		handleGithubError(m, err, orgname)
 
 		for _, repo := range repos {
 			if *repo.Fork && !*m.Flags.Forks {
@@ -70,7 +73,7 @@ func GetOrgMembers(m *Middleware, orgname string) []*string {
 	opt := &github.ListMembersOptions{ListOptions: github.ListOptions{PerPage: 100}}
 	for {
 		members, resp, err := m.Client.Organizations.ListMembers(context.Background(), orgname, opt)
-		handleGithubError(m, err)
+		handleGithubError(m, err, orgname)
 
 		for _, member := range members {
 			usernames = append(usernames, member.Login)
