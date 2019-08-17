@@ -12,7 +12,7 @@ it will print it out for you to further assess.
 
 Yar searches either by regex, entropy or both, the choice is yours. You can think of yar as a bigger and better truffleHog, it does everything that truffleHog does and more! Yar also does it faster and even finds more secrets (yes I know bold statement with no data to show it, I'll hopefully have some data to show it in the near future).
 
-Right now yar is in early development (v0.8.9), however it is still usable and I've found it to be performing better than truffleHog, both in performance and the number of secrets it finds.
+Right now yar is in early development (v0.9.0), however it is still usable and I've found it to be performing better than truffleHog, both in performance and the number of secrets it finds.
 If you want to know more regarding the development of yar, consult the Future Plans section.
 
 ## Installation
@@ -151,15 +151,17 @@ Features:
 + ~~Environment variables for color customization of output.~~
 + ~~Add cleanup flag.~~
 + ~~Configurable commit depth searching.~~
-+ ~~Add color customization as env variables like tldr.~~
-+ Add file exclusion.
++ ~~Able to search for forked repos as well.~~
 
 Extras/Bugfixes:
 + ~~Fix context output bug.~~
++ ~~Fix index out of range issue for large files~~ [See the following issue](https://github.com/sergi/go-diff/issues/89)
 + ~~Add contribution guidelines so strangers can take part in the project.~~
++ ~~Better error handling.~~
 
 ### v1.0.0
 Features:
++ Add file exclusion.
 + Make yar concurrent and hopefully parallel.
 + Redesign the findings output.
 + Option to save the results in some specified format (JSON maybe?).
