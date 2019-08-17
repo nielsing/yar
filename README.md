@@ -147,16 +147,16 @@ Yar is in active development and there are big plans for the near future.
 
 ### v0.9.0
 Features:
-+ Add the filename of the file that contains the secret to the finding output.
-+ Environment variables for color customization of output.
-+ Add cleanup flag.
-+ Configurable commit depth searching.
-+ Add color customization as env variables like tldr.
++ ~~Add the filename of the file that contains the secret to the finding output.~~
++ ~~Environment variables for color customization of output.~~
++ ~~Add cleanup flag.~~
++ ~~Configurable commit depth searching.~~
++ ~~Add color customization as env variables like tldr.~~
 + Add file exclusion.
 
 Extras/Bugfixes:
-+ Fix context output bug.
-+ Add contribution guidelines so strangers can take part in the project.
++ ~~Fix context output bug.~~
++ ~~Add contribution guidelines so strangers can take part in the project.~~
 
 ### v1.0.0
 Features:
@@ -164,12 +164,12 @@ Features:
 + Redesign the findings output.
 + Option to save the results in some specified format (JSON maybe?).
 
-Extras:
+Extras/Bugfixes:
 + Benchmarking.
 + Testing.
 
 ## Acknowledgements
-It is important to point out that this idea is inspired by the infamous [truffleHog](https://github.com/dxa4481/truffleHog) gave 
+It is important to point out that this idea is inspired by the infamous [truffleHog](https://github.com/dxa4481/truffleHog) tool 
 and the code used for entropy searching is in fact borrowed from the truffleHog repository which in turn is borrowed from 
 [this blog post](http://blog.dkbza.org/2007/05/scanning-data-for-entropy-anomalies.html).
 
