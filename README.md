@@ -16,7 +16,7 @@ Right now yar is in early development (v0.9.0), however it is still usable and I
 If you want to know more regarding the development of yar, consult the Future Plans section.
 
 ## Installation
-To install this you can simply run the following commands.
+To install this you simply run the following command.
 ```
 go get github.com/Furduhlutur/yar
 ```
@@ -38,7 +38,7 @@ yar -u username
 ```
 yar -r repolink
 ```
-or
+or if you have already cloned the repository
 ```
 yar -r repopath
 ```
@@ -122,11 +122,10 @@ usage: yar [-h|--help] [-o|--org "<value>"] [-u|--user "<value>"] [-r|--repo
 Arguments:
 
   -h  --help        Print help information
-  -o  --org         Organization to plunder. Default: 
-  -u  --user        User to plunder. Default: 
-  -r  --repo        Repository to plunder. Default: 
-      --rules       JSON file containing regex rulesets. Default:
-                    /home/niels/.go/src/github.com/Furduhlutur/yar/rules.json
+  -o  --org         Organization to plunder.
+  -u  --user        User to plunder. 
+  -r  --repo        Repository to plunder.
+      --rules       JSON file containing regex rulesets.
   -c  --context     Show N number of lines for context. Default: 2
   -e  --entropy     Search for secrets using entropy analysis. Default: false
   -b  --both        Search by using both regex and entropy analysis. Overrides
