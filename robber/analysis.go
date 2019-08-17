@@ -56,7 +56,7 @@ func AnalyzeRegexDiff(m *Middleware, diffObject *DiffObject) {
 
 // AnalyzeRepo opens a given repository and extracts all diffs from it for later analysis.
 func AnalyzeRepo(m *Middleware, reponame string) {
-	repo, err := OpenRepo(reponame, *m.Flags.CommitDepth)
+	repo, err := OpenRepo(m, reponame)
 	if err != nil {
 		if err == transport.ErrEmptyRemoteRepository {
 			m.Logger.LogWarn("%s is empty\n", reponame)
@@ -65,7 +65,7 @@ func AnalyzeRepo(m *Middleware, reponame string) {
 		m.Logger.LogFail("Unable to open repo %s: %s\n", reponame, err)
 	}
 
-	commits, err := GetCommits(repo)
+	commits, err := GetCommits(m.Flags.CommitDepth, repo)
 	if err != nil {
 		m.Logger.LogWarn("Unable to fetch commits for %s: %s\n", reponame, err)
 	}
@@ -74,19 +74,16 @@ func AnalyzeRepo(m *Middleware, reponame string) {
 	for index := range commits {
 		commit := commits[len(commits)-index-1]
 		changes, err := GetCommitChanges(commit)
-		if strings.Contains(reponame, "Competitive") {
-			m.Logger.LogInfo("Commit: %q\n", commit)
-		}
 		if err != nil {
 			m.Logger.LogWarn("Unable to get commit changes for hash %s: %s\n", commit.Hash, err)
 			continue
 		}
 
 		for _, change := range changes {
-			diffs, filepath, err := GetDiffs(change)
+			diffs, filepath, err := GetDiffs(m, change)
 			if err != nil {
 				m.Logger.LogWarn("Unable to get diffs of %s: %s\n", change, err)
-				break
+				continue
 			}
 			for _, diff := range diffs {
 				diffObject := NewDiffObject(commit, &diff, &reponame, &filepath)

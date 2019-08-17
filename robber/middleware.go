@@ -10,11 +10,12 @@ import (
 // It essentially holds all values which will be accessed by multiple go routines.
 type Middleware struct {
 	sync.Mutex
-	Logger  *Logger
-	Flags   *Flags
-	Rules   []*Rule
-	Secrets map[string]map[string]bool
-	Client  *github.Client
+	Logger      *Logger
+	Flags       *Flags
+	Rules       []*Rule
+	Secrets     map[string]map[string]bool
+	Client      *github.Client
+	AccessToken string
 }
 
 // NewMiddleware creates a new Middleware and returns it.
@@ -29,7 +30,9 @@ func NewMiddleware() *Middleware {
 		CleanUp(m)
 	}
 	ParseRegex(m)
-	m.Client = github.NewClient(GetAccessToken(m))
+	accessToken, client := GetAccessToken(m)
+	m.AccessToken = accessToken
+	m.Client = github.NewClient(client)
 	return m
 }
 

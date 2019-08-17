@@ -1,10 +1,12 @@
 package robber
 
 import (
+	"errors"
 	"fmt"
 	"github.com/akamensky/argparse"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 // Flags struct keeps a hold of all of the CLI arguments that were given.
@@ -49,12 +51,31 @@ func ParseFlags() *Flags {
 			Required: false,
 			Help:     "JSON file containing regex rulesets",
 			Default:  filepath.Join(GetGoPath(), "src", "github.com", "Furduhlutur", "yar", "rules.json"),
+			Validate: func(args []string) error {
+				filename := args[0]
+				_, err := os.Stat(filename)
+				if os.IsNotExist(err) {
+					return errors.New("Rules file does not exist")
+				} else if os.IsPermission(err) {
+					return errors.New("You do not have permission to read the rules file")
+				} else if err != nil {
+					return errors.New("Unable to read rules file")
+				}
+				return nil
+			},
 		}),
 
 		Context: parser.Int("c", "context", &argparse.Options{
 			Required: false,
 			Help:     "Show N number of lines for context",
 			Default:  2,
+			Validate: func(args []string) error {
+				context, err := strconv.Atoi(args[0])
+				if err != nil || context < 0 {
+					return errors.New("Context must be a non-negative integer")
+				}
+				return nil
+			},
 		}),
 
 		Entropy: parser.Flag("e", "entropy", &argparse.Options{
@@ -99,6 +120,13 @@ func ParseFlags() *Flags {
 			Required: false,
 			Help:     "Specify the depth limit of commits fetched when cloning",
 			Default:  100000,
+			Validate: func(args []string) error {
+				depth, err := strconv.Atoi(args[0])
+				if err != nil || depth < 0 {
+					return errors.New("Depth must be a non-negative integer")
+				}
+				return nil
+			},
 		}),
 	}
 

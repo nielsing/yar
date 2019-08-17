@@ -8,6 +8,7 @@ import (
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/format/diff"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 )
 
 // DiffObject holds everything that is needed to analyze a diff.
@@ -28,17 +29,34 @@ func NewDiffObject(commit *object.Commit, diff, reponame, filepath *string) *Dif
 	}
 }
 
+// getCloneOptions returns either an authenticated clone of a repo or an
+// anonymous clone of a repo based on whether an AccessToken was given or not.
+func getCloneOptions(m *Middleware, url string) *git.CloneOptions {
+	if m.AccessToken != "" {
+		return &git.CloneOptions{
+			URL:   url,
+			Depth: *m.Flags.CommitDepth + 1, // There is an off by one error in Depth field.
+			Auth: &http.BasicAuth{
+				Username: "NotEmpty", // https://godoc.org/gopkg.in/src-d/go-git.v4#PlainClone
+				Password: m.AccessToken,
+			},
+		}
+	}
+	return &git.CloneOptions{
+		URL:   url,
+		Depth: *m.Flags.CommitDepth + 1, // There is an off by one error in Depth field.
+	}
+}
+
 // cloneRepo creates a temp directory in the OS's temp directory
 // and clones the given URL into it.
-func cloneRepo(url string, depth int) (*git.Repository, error) {
+func cloneRepo(m *Middleware, url string) (*git.Repository, error) {
 	dir, err := ioutil.TempDir("", "yar")
 	if err != nil {
 		return nil, err
 	}
-	repo, err := git.PlainClone(dir, false, &git.CloneOptions{
-		URL:   url,
-		Depth: depth,
-	})
+	opt := getCloneOptions(m, url)
+	repo, err := git.PlainClone(dir, false, opt)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +66,7 @@ func cloneRepo(url string, depth int) (*git.Repository, error) {
 // OpenRepo opens a repository found at the given path.
 // If the path points to a nonexistant repository it assumes that an URL
 // was given and tries to clone it instead.
-func OpenRepo(path string, depth int) (*git.Repository, error) {
+func OpenRepo(m *Middleware, path string) (*git.Repository, error) {
 	var repo *git.Repository
 	if _, err := os.Stat(path); err == nil {
 		repo, err = git.PlainOpen(path)
@@ -58,7 +76,7 @@ func OpenRepo(path string, depth int) (*git.Repository, error) {
 		return repo, nil
 	}
 
-	repo, err := cloneRepo(path, depth)
+	repo, err := cloneRepo(m, path)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +85,7 @@ func OpenRepo(path string, depth int) (*git.Repository, error) {
 
 // GetCommits simply traverses a given repository, gathering all commits
 // and then returns a list of them.
-func GetCommits(repo *git.Repository) ([]*object.Commit, error) {
+func GetCommits(depth *int, repo *git.Repository) ([]*object.Commit, error) {
 	var commits []*object.Commit
 	ref, err := repo.Head()
 	commitIter, err := repo.Log(&git.LogOptions{From: ref.Hash(), Order: git.LogOrderCommitterTime})
@@ -75,8 +93,13 @@ func GetCommits(repo *git.Repository) ([]*object.Commit, error) {
 		return nil, err
 	}
 
+	count := 0
 	commitIter.ForEach(func(c *object.Commit) error {
+		if count == *depth {
+			return nil
+		}
 		commits = append(commits, c)
+		count++
 		return nil
 	})
 	return commits, nil
@@ -131,7 +154,15 @@ func getFilepath(file diff.FilePatch) string {
 
 // GetDiffs gets all diffs which are either of type addage or removal
 // for a change in a commit.
-func GetDiffs(change *object.Change) ([]string, string, error) {
+func GetDiffs(m *Middleware, change *object.Change) ([]string, string, error) {
+	// This is done to handle the following inevitable error https://github.com/sergi/go-diff/issues/89
+	// If you run into this error a bunch of times then please take a look at the issue and see if you can
+	// contribute a fix :).
+	defer func() {
+		if r := recover(); r != nil {
+			m.Logger.LogWarn("Encountered a file which is too large to handle!\n")
+		}
+	}()
 	patch, err := change.Patch()
 	if err != nil {
 		return nil, "", err

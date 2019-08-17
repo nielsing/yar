@@ -110,17 +110,17 @@ func PrintEntropyFinding(validStrings []string, m *Middleware, diffObject *DiffO
 }
 
 // GetAccessToken retreives access token from env variables and returns an oauth2 client.
-func GetAccessToken(m *Middleware) *http.Client {
+func GetAccessToken(m *Middleware) (string, *http.Client) {
 	accessToken := os.Getenv(envTokenVariable)
 	if accessToken == "" {
 		m.Logger.LogWarn("No access token found for GitHub, consider adding it by running 'export YAR_GITHUB_TOKEN=YOUR_TOKEN'.\n")
-		return nil
+		return "", nil
 	}
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: accessToken},
 	)
 	tc := oauth2.NewClient(context.Background(), ts)
-	return tc
+	return accessToken, tc
 }
 
 // GetGoPath returns user's GOPATH env variable.
