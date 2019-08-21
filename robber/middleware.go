@@ -1,7 +1,9 @@
 package robber
 
 import (
+	"runtime"
 	"sync"
+	"sync/atomic"
 
 	"github.com/google/go-github/github"
 )
@@ -16,13 +18,15 @@ type Middleware struct {
 	Secrets     map[string]map[string]bool
 	Client      *github.Client
 	AccessToken string
+	RepoCount   *int32
 }
 
 // NewMiddleware creates a new Middleware and returns it.
 func NewMiddleware() *Middleware {
 	m := &Middleware{
-		Secrets: make(map[string]map[string]bool),
-		Flags:   ParseFlags(),
+		Secrets:   make(map[string]map[string]bool),
+		Flags:     ParseFlags(),
+		RepoCount: new(int32),
 	}
 	m.Logger = NewLogger(*m.Flags.Verbose)
 	// If CleanUp flag is given, handle immediately
@@ -51,4 +55,29 @@ func (m *Middleware) SecretExists(reponame string, secret string) bool {
 	m.Lock()
 	defer m.Unlock()
 	return m.Secrets[reponame][secret]
+}
+
+// Start starts yar
+func (m *Middleware) Start() {
+	quit := make(chan bool)
+	repoch := make(chan string, runtime.NumCPU())
+	for proc := 0; proc < runtime.NumCPU(); proc++ {
+		go AnalyzeRepo(m, repoch, quit)
+	}
+
+	if *m.Flags.Org != "" {
+		AnalyzeOrg(m, *m.Flags.Org, repoch)
+	}
+	if *m.Flags.User != "" {
+		AnalyzeUser(m, *m.Flags.User, repoch)
+	}
+	if *m.Flags.Repo != "" {
+		atomic.AddInt32(m.RepoCount, 1)
+		repoch <- *m.Flags.Repo
+	}
+
+	select {
+	case <-quit:
+		break
+	}
 }

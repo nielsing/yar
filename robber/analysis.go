@@ -2,6 +2,7 @@ package robber
 
 import (
 	"strings"
+	"sync/atomic"
 
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 )
@@ -55,7 +56,8 @@ func AnalyzeRegexDiff(m *Middleware, diffObject *DiffObject) {
 }
 
 // AnalyzeRepo opens a given repository and extracts all diffs from it for later analysis.
-func AnalyzeRepo(m *Middleware, reponame string) {
+func AnalyzeRepo(m *Middleware, repoch <-chan string, quit chan<- bool) {
+	reponame := <-repoch
 	repo, err := OpenRepo(m, reponame)
 	if err != nil {
 		if err == transport.ErrEmptyRemoteRepository {
@@ -99,26 +101,32 @@ func AnalyzeRepo(m *Middleware, reponame string) {
 			}
 		}
 	}
+	// atomic.AddInt32(m.RepoCount, -1)
+	// if atomic.LoadInt32(m.RepoCount) == 0 {
+	// 	quit <- true
+	// }
 }
 
 // AnalyzeUser simply sends a GET request on githubs API for a given username
 // and starts and analysis of each of the user's repositories.
-func AnalyzeUser(m *Middleware, username string) {
+func AnalyzeUser(m *Middleware, username string, repoch chan<- string) {
 	repos := GetUserRepos(m, username)
 	for _, repo := range repos {
-		AnalyzeRepo(m, *repo)
+		// repoch <- *repo
+		// atomic.AddInt32(m.RepoCount, 1)
 	}
 }
 
 // AnalyzeOrg simply sends two GET requests to githubs API, one for a given organizations
 // repositories and one for its' members.
-func AnalyzeOrg(m *Middleware, orgname string) {
+func AnalyzeOrg(m *Middleware, orgname string, repoch chan<- string) {
 	repos := GetOrgRepos(m, orgname)
 	members := GetOrgMembers(m, orgname)
 	for _, repo := range repos {
-		AnalyzeRepo(m, *repo)
+		// repoch <- *repo
+		// atomic.AddInt32(m.RepoCount, 1)
 	}
 	for _, member := range members {
-		AnalyzeUser(m, *member)
+		AnalyzeUser(m, *member, repoch)
 	}
 }
