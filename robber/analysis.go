@@ -101,10 +101,10 @@ func AnalyzeRepo(m *Middleware, repoch <-chan string, quit chan<- bool) {
 			}
 		}
 	}
-	// atomic.AddInt32(m.RepoCount, -1)
-	// if atomic.LoadInt32(m.RepoCount) == 0 {
-	// 	quit <- true
-	// }
+	atomic.AddInt32(m.RepoCount, -1)
+	if atomic.LoadInt32(m.RepoCount) == 0 {
+		quit <- true
+	}
 }
 
 // AnalyzeUser simply sends a GET request on githubs API for a given username
@@ -112,8 +112,8 @@ func AnalyzeRepo(m *Middleware, repoch <-chan string, quit chan<- bool) {
 func AnalyzeUser(m *Middleware, username string, repoch chan<- string) {
 	repos := GetUserRepos(m, username)
 	for _, repo := range repos {
-		// repoch <- *repo
-		// atomic.AddInt32(m.RepoCount, 1)
+		repoch <- *repo
+		atomic.AddInt32(m.RepoCount, 1)
 	}
 }
 
@@ -123,8 +123,8 @@ func AnalyzeOrg(m *Middleware, orgname string, repoch chan<- string) {
 	repos := GetOrgRepos(m, orgname)
 	members := GetOrgMembers(m, orgname)
 	for _, repo := range repos {
-		// repoch <- *repo
-		// atomic.AddInt32(m.RepoCount, 1)
+		repoch <- *repo
+		atomic.AddInt32(m.RepoCount, 1)
 	}
 	for _, member := range members {
 		AnalyzeUser(m, *member, repoch)
