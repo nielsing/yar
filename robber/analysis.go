@@ -120,8 +120,8 @@ func AnalyzeRepo(m *Middleware, repoch <-chan string, quit chan<- bool) {
 // and starts and analysis of each of the user's repositories.
 func AnalyzeUser(m *Middleware, username string, repoch chan<- string) {
 	repos := GetUserRepos(m, username)
+	atomic.AddInt32(m.RepoCount, int32(len(repos)))
 	for _, repo := range repos {
-		atomic.AddInt32(m.RepoCount, 1)
 		repoch <- *repo
 	}
 }
@@ -131,8 +131,8 @@ func AnalyzeUser(m *Middleware, username string, repoch chan<- string) {
 func AnalyzeOrg(m *Middleware, orgname string, repoch chan<- string) {
 	repos := GetOrgRepos(m, orgname)
 	members := GetOrgMembers(m, orgname)
+	atomic.AddInt32(m.RepoCount, int32(len(repos)))
 	for _, repo := range repos {
-		atomic.AddInt32(m.RepoCount, 1)
 		repoch <- *repo
 	}
 	for _, member := range members {

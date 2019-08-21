@@ -17,10 +17,17 @@ Read here for more information: https://golang.org/pkg/regexp/syntax/
 `
 )
 
+// Config struct holds all config from the given JSON file.
+type Config struct {
+	Rules         []*Rule
+	FileBlacklist []string `json:"FileBlacklist"`
+}
+
 // Rule struct holds a given regex rule with its' reason for matching.
 type Rule struct {
 	Reason string
 	Regex  *regexp.Regexp
+	// Noiselevel int
 }
 
 // ParseRegex reads regex rules from a given JSON file.

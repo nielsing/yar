@@ -1,6 +1,7 @@
 package robber
 
 import (
+	"os"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -57,7 +58,7 @@ func (m *Middleware) SecretExists(reponame string, secret string) bool {
 	return m.Secrets[reponame][secret]
 }
 
-// Start starts yar
+// Start handles the CLI args and starts yar accordingly.
 func (m *Middleware) Start() {
 	quit := make(chan bool)
 	repoch := make(chan string, runtime.NumCPU())
@@ -74,6 +75,11 @@ func (m *Middleware) Start() {
 	if *m.Flags.Repo != "" {
 		atomic.AddInt32(m.RepoCount, 1)
 		repoch <- *m.Flags.Repo
+	}
+
+	// Handle edge case of an org/user containing 0 repos.
+	if atomic.LoadInt32(m.RepoCount) == 0 {
+		os.Exit(0)
 	}
 
 	select {

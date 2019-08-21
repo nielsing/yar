@@ -184,20 +184,20 @@ func (l *Logger) LogSecret(format string, a ...interface{}) {
 
 // LogInfo prints to output using 'info' colors
 func (l *Logger) LogInfo(format string, a ...interface{}) {
-	l.log(info, format, a...)
+	l.log(info, "[+] "+format, a...)
 }
 
 // LogSucc prints to output using 'succ' colors
 func (l *Logger) LogSucc(format string, a ...interface{}) {
-	l.log(succ, format, a...)
+	l.log(succ, "[+] "+format, a...)
 }
 
 // LogWarn prints to output using 'warn' colors
 func (l *Logger) LogWarn(format string, a ...interface{}) {
-	l.log(warn, format, a...)
+	l.log(warn, "[-] "+format, a...)
 }
 
 // LogFail prints to output using 'fail' colors
 func (l *Logger) LogFail(format string, a ...interface{}) {
-	l.log(fail, format, a...)
+	l.log(fail, "[!] "+format, a...)
 }

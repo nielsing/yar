@@ -1,8 +1,7 @@
 package robber
 
 import (
-	"io/ioutil"
-	"os"
+	"path/filepath"
 	"strings"
 
 	"gopkg.in/src-d/go-git.v4"
@@ -50,13 +49,9 @@ func getCloneOptions(m *Middleware, url string) *git.CloneOptions {
 
 // cloneRepo creates a temp directory in the OS's temp directory
 // and clones the given URL into it.
-func cloneRepo(m *Middleware, url string) (*git.Repository, error) {
-	dir, err := ioutil.TempDir("", "yar")
-	if err != nil {
-		return nil, err
-	}
+func cloneRepo(m *Middleware, url string, cloneFolder string) (*git.Repository, error) {
 	opt := getCloneOptions(m, url)
-	repo, err := git.PlainClone(dir, false, opt)
+	repo, err := git.PlainClone(cloneFolder, false, opt)
 	if err != nil {
 		return nil, err
 	}
@@ -67,16 +62,16 @@ func cloneRepo(m *Middleware, url string) (*git.Repository, error) {
 // If the path points to a nonexistant repository it assumes that an URL
 // was given and tries to clone it instead.
 func OpenRepo(m *Middleware, path string) (*git.Repository, error) {
-	var repo *git.Repository
-	if _, err := os.Stat(path); err == nil {
-		repo, err = git.PlainOpen(path)
+	dir, exists := GetDir(path)
+	if !exists {
+		repo, err := git.PlainOpen(filepath.Join(dir, ".git"))
 		if err != nil {
 			return nil, err
 		}
 		return repo, nil
 	}
 
-	repo, err := cloneRepo(m, path)
+	repo, err := cloneRepo(m, path, dir)
 	if err != nil {
 		return nil, err
 	}

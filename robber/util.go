@@ -2,11 +2,11 @@ package robber
 
 import (
 	"context"
-	"io/ioutil"
 	"math"
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"golang.org/x/oauth2"
@@ -18,21 +18,24 @@ const (
 
 // CleanUp deletes all temp directories which were created for cloning of repositories.
 func CleanUp(m *Middleware) {
-	files, err := ioutil.ReadDir(os.TempDir())
+	err := os.RemoveAll(path.Join(os.TempDir(), "yar"))
 	if err != nil {
-		m.Logger.LogFail("Something extremely bad is going on!\n")
-		os.Exit(1)
-	}
-
-	for _, file := range files {
-		if strings.HasPrefix(file.Name(), "yar") {
-			err := os.RemoveAll(path.Join(os.TempDir(), file.Name()))
-			if err != nil {
-				m.Logger.LogInfo("Unable to remove %s\n", file.Name())
-			}
-		}
+		m.Logger.LogWarn("Unable to remove the cache folder!")
 	}
 	os.Exit(0)
+}
+
+// GetDir returns the respective directory of a given cloneurl and whether it exists.
+func GetDir(cloneurl string) (string, bool) {
+	if _, err := os.Stat(cloneurl); err == nil {
+		return cloneurl, true
+	}
+	names := strings.Split(cloneurl, "/")
+	parentFolder := names[len(names)-2]
+	childFolder := strings.Replace(names[len(names)-1], ".git", "", -1)
+	dir := filepath.Join(os.TempDir(), "yar", parentFolder, childFolder)
+	_, err := os.Stat(dir)
+	return dir, os.IsNotExist(err)
 }
 
 // FindValidStrings finds parts of a word which are valid in respect
@@ -113,7 +116,6 @@ func PrintEntropyFinding(validStrings []string, m *Middleware, diffObject *DiffO
 func GetAccessToken(m *Middleware) (string, *http.Client) {
 	accessToken := os.Getenv(envTokenVariable)
 	if accessToken == "" {
-		m.Logger.LogWarn("No access token found for GitHub, consider adding it by running 'export YAR_GITHUB_TOKEN=YOUR_TOKEN'.\n")
 		return "", nil
 	}
 	ts := oauth2.StaticTokenSource(
