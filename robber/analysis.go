@@ -68,6 +68,7 @@ func AnalyzeRepo(m *Middleware, reponame string) {
 	commits, err := GetCommits(m.Flags.CommitDepth, repo)
 	if err != nil {
 		m.Logger.LogWarn("Unable to fetch commits for %s: %s\n", reponame, err)
+		return
 	}
 
 	// Get all changes in correct order of commit history
