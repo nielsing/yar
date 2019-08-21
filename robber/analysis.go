@@ -57,53 +57,62 @@ func AnalyzeRegexDiff(m *Middleware, diffObject *DiffObject) {
 
 // AnalyzeRepo opens a given repository and extracts all diffs from it for later analysis.
 func AnalyzeRepo(m *Middleware, repoch <-chan string, quit chan<- bool) {
-	reponame := <-repoch
-	repo, err := OpenRepo(m, reponame)
-	if err != nil {
-		if err == transport.ErrEmptyRemoteRepository {
-			m.Logger.LogWarn("%s is empty\n", reponame)
-			return
-		}
-		m.Logger.LogFail("Unable to open repo %s: %s\n", reponame, err)
-	}
-
-	commits, err := GetCommits(m.Flags.CommitDepth, repo)
-	if err != nil {
-		m.Logger.LogWarn("Unable to fetch commits for %s: %s\n", reponame, err)
-		return
-	}
-
-	// Get all changes in correct order of commit history
-	for index := range commits {
-		commit := commits[len(commits)-index-1]
-		changes, err := GetCommitChanges(commit)
-		if err != nil {
-			m.Logger.LogWarn("Unable to get commit changes for hash %s: %s\n", commit.Hash, err)
-			continue
-		}
-
-		for _, change := range changes {
-			diffs, filepath, err := GetDiffs(m, change)
+	for {
+		select {
+		case reponame := <-repoch:
+			repo, err := OpenRepo(m, reponame)
 			if err != nil {
-				m.Logger.LogWarn("Unable to get diffs of %s: %s\n", change, err)
-				continue
+				if err == transport.ErrEmptyRemoteRepository {
+					m.Logger.LogWarn("%s is empty\n", reponame)
+					atomic.AddInt32(m.RepoCount, -1)
+					if atomic.LoadInt32(m.RepoCount) == 0 {
+						quit <- true
+					}
+					break
+				}
+				m.Logger.LogFail("Unable to open repo %s: %s\n", reponame, err)
 			}
-			for _, diff := range diffs {
-				diffObject := NewDiffObject(commit, &diff, &reponame, &filepath)
-				if *m.Flags.Both {
-					AnalyzeRegexDiff(m, diffObject)
-					AnalyzeEntropyDiff(m, diffObject)
-				} else if *m.Flags.Entropy {
-					AnalyzeEntropyDiff(m, diffObject)
-				} else {
-					AnalyzeRegexDiff(m, diffObject)
+
+			commits, err := GetCommits(m.Flags.CommitDepth, repo)
+			if err != nil {
+				m.Logger.LogWarn("Unable to fetch commits for %s: %s\n", reponame, err)
+				return
+			}
+
+			// Get all changes in correct order of commit history
+			for index := range commits {
+				commit := commits[len(commits)-index-1]
+				changes, err := GetCommitChanges(commit)
+				if err != nil {
+					m.Logger.LogWarn("Unable to get commit changes for hash %s: %s\n", commit.Hash, err)
+					continue
+				}
+
+				for _, change := range changes {
+					diffs, filepath, err := GetDiffs(m, change)
+					if err != nil {
+						m.Logger.LogWarn("Unable to get diffs of %s: %s\n", change, err)
+						continue
+					}
+					for _, diff := range diffs {
+						diffObject := NewDiffObject(commit, &diff, &reponame, &filepath)
+						if *m.Flags.Both {
+							AnalyzeRegexDiff(m, diffObject)
+							AnalyzeEntropyDiff(m, diffObject)
+						} else if *m.Flags.Entropy {
+							AnalyzeEntropyDiff(m, diffObject)
+						} else {
+							AnalyzeRegexDiff(m, diffObject)
+						}
+					}
 				}
 			}
+			atomic.AddInt32(m.RepoCount, -1)
+			if atomic.LoadInt32(m.RepoCount) == 0 {
+				quit <- true
+				break
+			}
 		}
-	}
-	atomic.AddInt32(m.RepoCount, -1)
-	if atomic.LoadInt32(m.RepoCount) == 0 {
-		quit <- true
 	}
 }
 
@@ -112,8 +121,8 @@ func AnalyzeRepo(m *Middleware, repoch <-chan string, quit chan<- bool) {
 func AnalyzeUser(m *Middleware, username string, repoch chan<- string) {
 	repos := GetUserRepos(m, username)
 	for _, repo := range repos {
-		repoch <- *repo
 		atomic.AddInt32(m.RepoCount, 1)
+		repoch <- *repo
 	}
 }
 
@@ -123,8 +132,8 @@ func AnalyzeOrg(m *Middleware, orgname string, repoch chan<- string) {
 	repos := GetOrgRepos(m, orgname)
 	members := GetOrgMembers(m, orgname)
 	for _, repo := range repos {
-		repoch <- *repo
 		atomic.AddInt32(m.RepoCount, 1)
+		repoch <- *repo
 	}
 	for _, member := range members {
 		AnalyzeUser(m, *member, repoch)
