@@ -1,4 +1,5 @@
-truffleRules.json
 yar
-noisyrules.json
 .vscode/
+config/rules.json
+config/noisyrules.json
+config/truffleRules.json

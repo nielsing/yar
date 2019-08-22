@@ -1,0 +1,260 @@
+{
+    "Rules": [
+        {
+            "Reason": "AWS API Key",
+            "Rule": "AKIA[0-9A-Z]{16}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "AWS Access Key ID Value",
+            "Rule": "(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "AWS Access Key ID",
+            "Rule": "((\\\"|'|`)?((?i)aws)?_?((?i)access)_?((?i)key)?_?((?i)id)?(\\\"|'|`)?\\\\s{0,50}(:|=>|=)\\\\s{0,50}(\\\"|'|`)?(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}(\\\"|'|`)?)",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "AWS Account ID",
+            "Rule": "((\\\"|'|`)?((?i)aws)?_?((?i)account)_?((?i)id)?(\\\"|'|`)?\\\\s{0,50}(:|=>|=)\\\\s{0,50}(\\\"|'|`)?[0-9]{4}-?[0-9]{4}-?[0-9]{4}(\\\"|'|`)?)",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "AWS Secret Access Key",
+            "Rule": "((\\\"|'|`)?((?i)aws)?_?((?i)secret)_?((?i)access)?_?((?i)key)?_?((?i)id)?(\\\"|'|`)?\\\\s{0,50}(:|=>|=)\\\\s{0,50}(\\\"|'|`)?[A-Za-z0-9/+=]{40}(\\\"|'|`)?)",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "AWS Session Token",
+            "Rule": "((\\\"|'|`)?((?i)aws)?_?((?i)session)?_?((?i)token)?(\\\"|'|`)?\\\\s{0,50}(:|=>|=)\\\\s{0,50}(\\\"|'|`)?[A-Za-z0-9/+=]{16,}(\\\"|'|`)?)",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Amazon AWS Access Key ID",
+            "Rule": "AKIA[0-9A-Z]{16}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Amazon MWS Auth Token",
+            "Rule": "amzn\\.mws\\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Artifactory",
+            "Rule": "(?i)artifactory.{0,50}(\\\"|'|`)?[a-zA-Z0-9=]{112}(\\\"|'|`)?",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "CC",
+            "Rule": "(?i)codeclima.{0,50}(\\\"|'|`)?[0-9a-f]{64}(\\\"|'|`)?",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Facebook Access Token",
+            "Rule": "EAACEdEose0cBA[0-9A-Za-z]+",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Facebook Oauth",
+            "Rule": "(?i)facebook.{0,50}(\\\"|'|`)?[0-9a-f]{32}(\\\"|'|`)?",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Google (GCP) Service-account",
+            "Rule": "((\\\"|'|`)?type(\\\"|'|`)?\\\\s{0,50}(:|=>|=)\\\\s{0,50}(\\\"|'|`)?service_account(\\\"|'|`)?,?)",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Google API Key",
+            "Rule": "AIza[0-9A-Za-z\\-_]{35}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Google Cloud Platform API Key",
+            "Rule": "AIza[0-9A-Za-z\\-_]{35}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Google Cloud Platform OAuth",
+            "Rule": "[0-9]+-[0-9A-Za-z_]{32}\\.apps\\.googleusercontent\\.com",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Google Drive API Key",
+            "Rule": "AIza[0-9A-Za-z\\-_]{35}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Google Drive OAuth",
+            "Rule": "[0-9]+-[0-9A-Za-z_]{32}\\.apps\\.googleusercontent\\.com",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Google Gmail API Key",
+            "Rule": "AIza[0-9A-Za-z\\-_]{35}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Google Gmail OAuth",
+            "Rule": "[0-9]+-[0-9A-Za-z_]{32}\\.apps\\.googleusercontent\\.com",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Google OAuth Access Token",
+            "Rule": "ya29\\.[0-9A-Za-z\\-_]+",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Google Oauth",
+            "Rule": "((\\\"|'|`)?client_secret(\\\"|'|`)?\\\\s{0,50}(:|=>|=)\\\\s{0,50}(\\\"|'|`)?[a-zA-Z0-9-_]{24}(\\\"|'|`)?)",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Google YouTube API Key",
+            "Rule": "AIza[0-9A-Za-z\\-_]{35}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Google YouTube OAuth",
+            "Rule": "[0-9]+-[0-9A-Za-z_]{32}\\.apps\\.googleusercontent\\.com",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Heroku API Key",
+            "Rule": "(?i)heroku.{0,50}[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Hockeyapp",
+            "Rule": "(?i)hockey.{0,50}(\\\"|'|`)?[0-9a-f]{32}(\\\"|'|`)?",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "MailChimp API Key",
+            "Rule": "[0-9a-f]{32}-us[0-9]{1,2}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Mailgun API Key",
+            "Rule": "key-[0-9a-zA-Z]{32}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "NPM",
+            "Rule": "(?i)npm.{0,50}(\\\"|'|`)?[0-9a-f-]{36}(\\\"|'|`)?",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Outlook team",
+            "Rule": "(https\\://outlook\\.office.com/webhook/[0-9a-f-]{36}\\@)",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "PGP private key block",
+            "Rule": "-----BEGIN PGP PRIVATE KEY BLOCK-----",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Password in URL",
+            "Rule": "[a-zA-Z]{3,10}://[^/\\s:@]{3,20}:[^/\\s:@]{3,20}@.{1,100}[\"'\\s]",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "PayPal Braintree Access Token",
+            "Rule": "access_token\\$production\\$[0-9a-z]{16}\\$[0-9a-f]{32}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Picatic API Key",
+            "Rule": "sk_live_[0-9a-z]{32}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "RSA private key",
+            "Rule": "-----BEGIN RSA PRIVATE KEY-----",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "SSH (DSA) private key",
+            "Rule": "-----BEGIN DSA PRIVATE KEY-----",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "SSH (EC) private key",
+            "Rule": "-----BEGIN EC PRIVATE KEY-----",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "SSH (OPENSSH) private key",
+            "Rule": "-----BEGIN OPENSSH PRIVATE KEY-----",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Sauce",
+            "Rule": "(?i)sauce.{0,50}(\\\"|'|`)?[0-9a-f-]{36}(\\\"|'|`)?",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Slack Token",
+            "Rule": "(xox[pboa]-[0-9]{12}-[0-9]{12}-[0-9]{12}-[a-z0-9]{32})",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Slack Webhook",
+            "Rule": "https://hooks.slack.com/services/T[a-zA-Z0-9_]{8}/B[a-zA-Z0-9_]{8}/[a-zA-Z0-9_]{24}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Sonar",
+            "Rule": "(?i)sonar.{0,50}(\\\"|'|`)?[0-9a-f]{40}(\\\"|'|`)?",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Square Access Token",
+            "Rule": "sq0atp-[0-9A-Za-z\\-_]{22}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Square OAuth Secret",
+            "Rule": "sq0csp-[0-9A-Za-z\\-_]{43}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Stripe API Key",
+            "Rule": "sk_live_[0-9a-zA-Z]{24}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Stripe Restricted API Key",
+            "Rule": "rk_live_[0-9a-zA-Z]{24}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Surge",
+            "Rule": "(?i)surge.{0,50}(\\\"|'|`)?[0-9a-f]{32}(\\\"|'|`)?",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Twilio API Key",
+            "Rule": "SK[0-9a-fA-F]{32}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Twitter Access Token",
+            "Rule": "(?i)twitter.{0,50}[1-9][0-9]+-[0-9a-zA-Z]{40}",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "Twitter Oauth",
+            "Rule": "(?i)twitter.{0,50}(\\\"|'|`)?[0-9a-zA-Z]{35,44}(\\\"|'|`)?",
+            "Noiselevel": 3
+        },
+        {
+            "Reason": "URL Authorization",
+            "Rule": "([a-zA-Z]{3,10}://[^/$\\\\s:@]{3,20}:[^/$\\\\s:@]{3,20}@.{1,100}[\"'$\\\\s])",
+            "Noiselevel": 3
+        }
+    ],
+    "FileBlacklist": []
+}

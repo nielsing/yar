@@ -2,6 +2,7 @@ package robber
 
 import (
 	"os"
+	"regexp"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -16,6 +17,7 @@ type Middleware struct {
 	Logger      *Logger
 	Flags       *Flags
 	Rules       []*Rule
+	Blacklist   []*regexp.Regexp
 	Secrets     map[string]map[string]bool
 	Client      *github.Client
 	AccessToken string
@@ -34,7 +36,7 @@ func NewMiddleware() *Middleware {
 	if *m.Flags.CleanUp {
 		CleanUp(m)
 	}
-	ParseRegex(m)
+	ParseConfig(m)
 	accessToken, client := GetAccessToken(m)
 	m.AccessToken = accessToken
 	m.Client = github.NewClient(client)
@@ -60,9 +62,10 @@ func (m *Middleware) SecretExists(reponame string, secret string) bool {
 
 // Start handles the CLI args and starts yar accordingly.
 func (m *Middleware) Start() {
+	cpuCount := runtime.NumCPU()
 	quit := make(chan bool)
-	repoch := make(chan string, runtime.NumCPU())
-	for proc := 0; proc < runtime.NumCPU(); proc++ {
+	repoch := make(chan string, cpuCount)
+	for proc := 0; proc < cpuCount; proc++ {
 		go AnalyzeRepo(m, repoch, quit)
 	}
 
