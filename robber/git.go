@@ -139,37 +139,33 @@ func GetCommitChanges(commit *object.Commit) (object.Changes, error) {
 	return changes, nil
 }
 
-func getFilepath(file diff.FilePatch) string {
-	_, to := file.Files()
-	if to == nil {
-		return ""
-	}
-	return to.Path()
-}
-
 // GetDiffs gets all diffs which are either of type addage or removal
 // for a change in a commit.
-func GetDiffs(m *Middleware, change *object.Change) ([]string, string, error) {
+func GetDiffs(m *Middleware, change *object.Change, reponame string) ([]string, string, error) {
 	// This is done to handle the following inevitable error https://github.com/sergi/go-diff/issues/89
 	// If you run into this error a bunch of times then please take a look at the issue and see if you can
 	// contribute a fix :).
 	defer func() {
 		if r := recover(); r != nil {
-			m.Logger.LogWarn("Encountered a file which is too large to handle!\n")
+			m.Logger.LogWarn("Encountered a file that is too large to handle in %s!\n", reponame)
 		}
 	}()
+
 	patch, err := change.Patch()
 	if err != nil {
 		return nil, "", err
 	}
 
 	var diffs []string
-	var filepath string
+	var filename string
 	for _, file := range patch.FilePatches() {
 		if file.IsBinary() {
 			continue
 		}
-		filepath = getFilepath(file)
+		filename = getFilepath(file)
+		if blacklistedFile(m, filename) {
+			continue
+		}
 		for _, chunk := range file.Chunks() {
 			if chunk.Type() != 1 {
 				continue
@@ -178,5 +174,24 @@ func GetDiffs(m *Middleware, change *object.Change) ([]string, string, error) {
 			diffs = append(diffs, diff)
 		}
 	}
-	return diffs, filepath, nil
+	return diffs, filename, nil
+}
+
+// GetDiffs helper
+func getFilepath(file diff.FilePatch) string {
+	_, to := file.Files()
+	if to == nil {
+		return ""
+	}
+	return to.Path()
+}
+
+// GetDiffs helper
+func blacklistedFile(m *Middleware, filename string) bool {
+	for _, rule := range m.Blacklist {
+		if rule.Match([]byte(filename)) {
+			return true
+		}
+	}
+	return false
 }

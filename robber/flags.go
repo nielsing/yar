@@ -18,13 +18,12 @@ type Flags struct {
 	Org         *string
 	User        *string
 	Repo        *string
-	Rules       *os.File
+	Config      *os.File
 	Context     *int
 	Entropy     *bool
 	Both        *bool
 	NoContext   *bool
 	Forks       *bool
-	Verbose     *bool
 	CleanUp     *bool
 	CommitDepth *int
 	Noise       *int
@@ -68,9 +67,9 @@ func ParseFlags() *Flags {
 			Default:  "",
 		}),
 
-		Rules: parser.File("", "rules", os.O_RDONLY, 0600, &argparse.Options{
+		Config: parser.File("", "config", os.O_RDONLY, 0600, &argparse.Options{
 			Required: false,
-			Help:     "JSON file containing regex rulesets",
+			Help:     "JSON file containing yar config",
 			Default:  filepath.Join(GetGoPath(), "src", "github.com", "Furduhlutur", "yar", "config", "yarconfig.json"),
 			Validate: func(args []string) error {
 				filename := args[0]
@@ -118,11 +117,6 @@ func ParseFlags() *Flags {
 		Forks: parser.Flag("f", "forks", &argparse.Options{
 			Required: false,
 			Help:     "Specifies whether forked repos are included or not",
-			Default:  false,
-		}),
-
-		Verbose: parser.Flag("v", "verbose", &argparse.Options{
-			Required: false,
 			Default:  false,
 		}),
 

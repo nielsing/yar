@@ -45,10 +45,10 @@ func ParseConfig(m *Middleware) {
 	var blacklist []*regexp.Regexp
 
 	// Read contents of JSON file
-	reader := bufio.NewReader(m.Flags.Rules)
+	reader := bufio.NewReader(m.Flags.Config)
 	content, err := ioutil.ReadAll(reader)
 	if err != nil {
-		m.Logger.LogFail("Unable to read file %s: %s", m.Flags.Rules.Name(), err)
+		m.Logger.LogFail("Unable to read file %s: %s", m.Flags.Config.Name(), err)
 	}
 
 	// Parse JSON file and compile regex rules
@@ -77,5 +77,5 @@ func ParseConfig(m *Middleware) {
 	}
 	m.Rules = rules
 	m.Blacklist = blacklist
-	m.Flags.Rules.Close()
+	m.Flags.Config.Close()
 }

@@ -89,7 +89,7 @@ func AnalyzeRepo(m *Middleware, repoch <-chan string, quit chan<- bool) {
 				}
 
 				for _, change := range changes {
-					diffs, filepath, err := GetDiffs(m, change)
+					diffs, filepath, err := GetDiffs(m, change, reponame)
 					if err != nil {
 						m.Logger.LogWarn("Unable to get diffs of %s: %s\n", change, err)
 						continue

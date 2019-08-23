@@ -31,7 +31,7 @@ func NewMiddleware() *Middleware {
 		Flags:     ParseFlags(),
 		RepoCount: new(int32),
 	}
-	m.Logger = NewLogger(*m.Flags.Verbose)
+	m.Logger = NewLogger(false)
 	// If CleanUp flag is given, handle immediately
 	if *m.Flags.CleanUp {
 		CleanUp(m)
