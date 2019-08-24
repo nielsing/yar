@@ -12,16 +12,13 @@ it will print it out for you to further assess.
 
 Yar searches either by regex, entropy or both, the choice is yours. You can think of yar as a bigger and better truffleHog, it does everything that truffleHog does and more! Yar also does it faster and even finds more secrets (yes I know bold statement with no data to show it, I'll hopefully have some data to show it in the near future).
 
-Right now yar is in early development (v0.9.0), however it is still usable and I've found it to be performing better than truffleHog, both in performance and the number of secrets it finds.
-If you want to know more regarding the development of yar, consult the Future Plans section.
-
 ## Installation
 To install this you simply run the following command.
 ```
 go get github.com/Furduhlutur/yar
 ```
 
-Just make sure that you have the GOPATH environment variable set in your preferred shell rc and that the go/bin directory is in your PATH.
+Just make sure that you have the GOPATH environment variable set in your preferred shell rc and that the $GOPATH/bin directory is in your PATH.
 
 ## Usage
 ### Want to search for secrets in an organization?
@@ -29,7 +26,7 @@ Just make sure that you have the GOPATH environment variable set in your preferr
 yar -o orgname
 ```
 
-### Want to search for secrets for a user?
+### Want to search for secrets in a users repository?
 ```
 yar -u username
 ```
@@ -49,16 +46,35 @@ yar -o orgname -u username -r reponame
 ```
 
 ### Have your own predefined rules?
-Rules are stored in a JSON file with the following format. If you are familiar with truffleHog you already know how to use this. Example:
+Rules are stored in a JSON file with the following format:
 ```
 {
-  "Reason": "regex-rule"
+    "Rules": [
+        {
+            "Reason": "The reason for the match",
+            "Rule": "The regex rule",
+            "Noise": 3
+        },
+        {
+            "Reason": "Super secret token",
+            "Rule": "^Token: .*$",
+            "Noise": 2
+        }
+    ]
+    "FileBlacklist": [
+        "Regex rule here"
+        "^.*\\.lock"
+    ]
 }
 ```
 
+You can then load your own rule set with the following command:
 ```
 yar -u username --rules PATH_TO_JSON_FILE
 ```
+
+If you already have a truffleHog config and want to port it over to a yar config there is a script in the config folder that does it for you.
+Simply run `python3 trufflestoconfig.py PATH_TO_TRUFFLEHOG_CONFIG` and the script will give you a file named `yarconfig.json`.
 
 ### Don't like regex?
 ```
@@ -70,7 +86,8 @@ yar -u username --entropy
 yar -u username --both
 ```
 
-### Want to search as an authenticated user? Simply add your github token to environment variables.
+### Want to search as an authenticated user? 
+Add your github token to your environment variables.
 ```
 export YAR_GITHUB_TOKEN=YOUR_TOKEN_HERE
 ```
@@ -113,61 +130,35 @@ Like so `export YAR_COLOR_SECRET="hiRed bold"`.
 ## Help
 ```
 usage: yar [-h|--help] [-o|--org "<value>"] [-u|--user "<value>"] [-r|--repo
-           "<value>"] [--rules <file>] [-c|--context <integer>] [-e|--entropy]
-           [-b|--both] [-n|--no-context] [-f|--forks] [-v|--verbose]
-           [--cleanup] [--depth <integer>]
+           "<value>"] [--config <file>] [-c|--context <integer>] [-e|--entropy]
+           [-b|--both] [--no-context] [-f|--forks] [--cleanup] [--depth
+           <integer>] [-n|--noise <integer>]
 
            Sail ye seas of git for booty is to be found
 
 Arguments:
 
   -h  --help        Print help information
-  -o  --org         Organization to plunder.
-  -u  --user        User to plunder. 
-  -r  --repo        Repository to plunder.
-      --rules       JSON file containing regex rulesets.
+  -o  --org         Organization to plunder. Default: 
+  -u  --user        User to plunder. Default: 
+  -r  --repo        Repository to plunder. Default: 
+      --config      JSON file containing yar config. Default:
+                    /home/niels/.go/src/github.com/Furduhlutur/yar/config/yarconfig.json
   -c  --context     Show N number of lines for context. Default: 2
   -e  --entropy     Search for secrets using entropy analysis. Default: false
   -b  --both        Search by using both regex and entropy analysis. Overrides
                     entropy flag. Default: false
-  -n  --no-context  Only show the secret itself, similar to trufflehog's regex
+      --no-context  Only show the secret itself, similar to trufflehog's regex
                     output. Overrides context flag. Default: false
   -f  --forks       Specifies whether forked repos are included or not.
                     Default: false
-  -v  --verbose    
       --cleanup     Remove all temporary directories used for cloning. Default:
                     false
       --depth       Specify the depth limit of commits fetched when cloning.
                     Default: 100000
+  -n  --noise       Specify the maximum noise level of findings to output.
+                    Default: 3
 ```
-
-## Future Plans
-Yar is in active development and there are big plans for the near future.
-
-### v0.9.0
-Features:
-+ ~~Add the filename of the file that contains the secret to the finding output.~~
-+ ~~Environment variables for color customization of output.~~
-+ ~~Add cleanup flag.~~
-+ ~~Configurable commit depth searching.~~
-+ ~~Able to search for forked repos as well.~~
-
-Extras/Bugfixes:
-+ ~~Fix context output bug.~~
-+ ~~Fix index out of range issue for large files~~ [See the following issue](https://github.com/sergi/go-diff/issues/89)
-+ ~~Add contribution guidelines so strangers can take part in the project.~~
-+ ~~Better error handling.~~
-
-### v1.0.0
-Features:
-+ Add file exclusion.
-+ Make yar concurrent and hopefully parallel.
-+ Redesign the findings output.
-+ Option to save the results in some specified format (JSON maybe?).
-
-Extras/Bugfixes:
-+ Benchmarking.
-+ Testing.
 
 ## Acknowledgements
 It is important to point out that this idea is inspired by the infamous [truffleHog](https://github.com/dxa4481/truffleHog) tool 

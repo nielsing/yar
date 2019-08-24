@@ -25,6 +25,17 @@ func CleanUp(m *Middleware) {
 	os.Exit(0)
 }
 
+// HandleSigInt captures the SIGINT signal and removes the cache folder.
+// This is done to avoid nil pointers for future runs of yar.
+func HandleSigInt(m *Middleware, sigc chan os.Signal, kill chan<- bool, finished <-chan bool, cleanup chan<- bool) {
+	<-sigc
+	m.Logger.LogInfo("Signal reveived, killing threads!\n")
+	kill <- true
+	<-finished
+	CleanUp(m)
+	cleanup <- true
+}
+
 // GetDir returns the respective directory of a given cloneurl and whether it exists.
 func GetDir(cloneurl string) (string, bool) {
 	if _, err := os.Stat(cloneurl); err == nil {

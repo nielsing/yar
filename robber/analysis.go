@@ -2,6 +2,7 @@ package robber
 
 import (
 	"strings"
+	"sync"
 	"sync/atomic"
 
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
@@ -56,7 +57,7 @@ func AnalyzeRegexDiff(m *Middleware, diffObject *DiffObject) {
 }
 
 // AnalyzeRepo opens a given repository and extracts all diffs from it for later analysis.
-func AnalyzeRepo(m *Middleware, repoch <-chan string, quit chan<- bool) {
+func AnalyzeRepo(m *Middleware, id int, repoch <-chan string, quit chan<- bool, done <-chan bool, wg *sync.WaitGroup) {
 	for {
 		select {
 		case reponame := <-repoch:
@@ -68,7 +69,7 @@ func AnalyzeRepo(m *Middleware, repoch <-chan string, quit chan<- bool) {
 					if atomic.LoadInt32(m.RepoCount) == 0 {
 						quit <- true
 					}
-					break
+					continue
 				}
 				m.Logger.LogFail("Unable to open repo %s: %s\n", reponame, err)
 			}
@@ -110,8 +111,10 @@ func AnalyzeRepo(m *Middleware, repoch <-chan string, quit chan<- bool) {
 			atomic.AddInt32(m.RepoCount, -1)
 			if atomic.LoadInt32(m.RepoCount) == 0 {
 				quit <- true
-				break
 			}
+		case <-done:
+			wg.Done()
+			return
 		}
 	}
 }

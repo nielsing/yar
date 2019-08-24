@@ -61,14 +61,18 @@ func (m *Middleware) SecretExists(reponame string, secret string) bool {
 }
 
 // Start handles the CLI args and starts yar accordingly.
-func (m *Middleware) Start() {
+func (m *Middleware) Start(kill chan bool, finished chan<- bool, cleanup <-chan bool) {
+	wg := new(sync.WaitGroup)
 	cpuCount := runtime.NumCPU()
-	quit := make(chan bool)
-	repoch := make(chan string, cpuCount)
-	for proc := 0; proc < cpuCount; proc++ {
-		go AnalyzeRepo(m, repoch, quit)
-	}
 
+	quit := make(chan bool, cpuCount) // Channel is buffered to ensure deadlock doesn't happen
+	done := make(chan bool)
+	repoch := make(chan string, cpuCount)
+	// Start all workers
+	for proc := 1; proc <= cpuCount; proc++ {
+		wg.Add(1)
+		go AnalyzeRepo(m, proc, repoch, quit, done, wg)
+	}
 	if *m.Flags.Org != "" {
 		AnalyzeOrg(m, *m.Flags.Org, repoch)
 	}
@@ -85,8 +89,18 @@ func (m *Middleware) Start() {
 		os.Exit(0)
 	}
 
+	// Clean up all workers
 	select {
 	case <-quit:
-		break
+		for proc := 0; proc < cpuCount; proc++ {
+			done <- true
+		}
+	case <-kill:
+		for proc := 0; proc < cpuCount; proc++ {
+			done <- true
+		}
+		finished <- true
+		<-cleanup
 	}
+	wg.Wait()
 }
