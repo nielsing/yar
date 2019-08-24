@@ -139,11 +139,10 @@ usage: yar [-h|--help] [-o|--org "<value>"] [-u|--user "<value>"] [-r|--repo
 Arguments:
 
   -h  --help        Print help information
-  -o  --org         Organization to plunder. Default: 
-  -u  --user        User to plunder. Default: 
-  -r  --repo        Repository to plunder. Default: 
-      --config      JSON file containing yar config. Default:
-                    /home/niels/.go/src/github.com/Furduhlutur/yar/config/yarconfig.json
+  -o  --org         Organization to plunder. 
+  -u  --user        User to plunder. 
+  -r  --repo        Repository to plunder.
+      --config      JSON file containing yar config.
   -c  --context     Show N number of lines for context. Default: 2
   -e  --entropy     Search for secrets using entropy analysis. Default: false
   -b  --both        Search by using both regex and entropy analysis. Overrides
