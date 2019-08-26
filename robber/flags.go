@@ -67,24 +67,6 @@ func ParseFlags() *Flags {
 			Default:  "",
 		}),
 
-		Config: parser.File("", "config", os.O_RDONLY, 0600, &argparse.Options{
-			Required: false,
-			Help:     "JSON file containing yar config",
-			Default:  filepath.Join(GetGoPath(), "src", "github.com", "Furduhlutur", "yar", "config", "yarconfig.json"),
-			Validate: func(args []string) error {
-				filename := args[0]
-				_, err := os.Stat(filename)
-				if os.IsNotExist(err) {
-					return errors.New("Rules file does not exist")
-				} else if os.IsPermission(err) {
-					return errors.New("You do not have permission to read the rules file")
-				} else if err != nil {
-					return errors.New("Unable to read rules file")
-				}
-				return nil
-			},
-		}),
-
 		Context: parser.Int("c", "context", &argparse.Options{
 			Required: false,
 			Help:     "Show N number of lines for context",
@@ -107,24 +89,19 @@ func ParseFlags() *Flags {
 			Default:  false,
 		}),
 
-		// Overrides context flag
-		NoContext: parser.Flag("", "no-context", &argparse.Options{
-			Required: false,
-			Help:     "Only show the secret itself, similar to trufflehog's regex output. Overrides context flag",
-			Default:  false,
-		}),
-
 		Forks: parser.Flag("f", "forks", &argparse.Options{
 			Required: false,
 			Help:     "Specifies whether forked repos are included or not",
 			Default:  false,
 		}),
 
-		// If cleanup is set, yar will ignore all other flags and only perform cleanup
-		CleanUp: parser.Flag("", "cleanup", &argparse.Options{
+		Noise: parser.Int("n", "noise", &argparse.Options{
 			Required: false,
-			Help:     "Remove all temporary directories used for cloning",
-			Default:  false,
+			Help:     "Specify the maximum noise level of findings to output",
+			Default:  3,
+			Validate: func(args []string) error {
+				return validateInt("Noiselevel", args[0], &bound{0, 5})
+			},
 		}),
 
 		CommitDepth: parser.Int("", "depth", &argparse.Options{
@@ -136,13 +113,36 @@ func ParseFlags() *Flags {
 			},
 		}),
 
-		Noise: parser.Int("n", "noise", &argparse.Options{
+		Config: parser.File("", "config", os.O_RDONLY, 0600, &argparse.Options{
 			Required: false,
-			Help:     "Specify the maximum noise level of findings to output",
-			Default:  3,
+			Help:     "JSON file containing yar config",
+			Default:  filepath.Join(GetGoPath(), "src", "github.com", "Furduhlutur", "yar", "config", "yarconfig.json"),
 			Validate: func(args []string) error {
-				return validateInt("Noiselevel", args[0], &bound{0, 5})
+				filename := args[0]
+				_, err := os.Stat(filename)
+				if os.IsNotExist(err) {
+					return errors.New("Rules file does not exist")
+				} else if os.IsPermission(err) {
+					return errors.New("You do not have permission to read the rules file")
+				} else if err != nil {
+					return errors.New("Unable to read rules file")
+				}
+				return nil
 			},
+		}),
+
+		// If cleanup is set, yar will ignore all other flags and only perform cleanup
+		CleanUp: parser.Flag("", "cleanup", &argparse.Options{
+			Required: false,
+			Help:     "Remove all cloned directories used for caching",
+			Default:  false,
+		}),
+
+		// Overrides context flag
+		NoContext: parser.Flag("", "no-context", &argparse.Options{
+			Required: false,
+			Help:     "Only show the secret itself, similar to trufflehog's regex output. Overrides context flag",
+			Default:  false,
 		}),
 	}
 

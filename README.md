@@ -131,33 +131,32 @@ Like so `export YAR_COLOR_SECRET="hiRed bold"`.
 ```
 usage: yar [-h|--help] [-o|--org "<value>"] [-u|--user "<value>"] [-r|--repo
            "<value>"] [--config <file>] [-c|--context <integer>] [-e|--entropy]
-           [-b|--both] [--no-context] [-f|--forks] [--cleanup] [--depth
-           <integer>] [-n|--noise <integer>]
+           [-b|--both] [-f|--forks] [-n|--noise <integer>] [--depth <integer>]
+           [--cleanup] [--no-context]
 
            Sail ye seas of git for booty is to be found
 
 Arguments:
 
   -h  --help        Print help information
-  -o  --org         Organization to plunder. Default: 
-  -u  --user        User to plunder. Default: 
-  -r  --repo        Repository to plunder. Default: 
-      --config      JSON file containing yar config. Default:
-                    /home/niels/.go/src/github.com/Furduhlutur/yar/config/yarconfig.json
+  -o  --org         Organization to plunder.
+  -u  --user        User to plunder.
+  -r  --repo        Repository to plunder.
   -c  --context     Show N number of lines for context. Default: 2
   -e  --entropy     Search for secrets using entropy analysis. Default: false
   -b  --both        Search by using both regex and entropy analysis. Overrides
                     entropy flag. Default: false
-      --no-context  Only show the secret itself, similar to trufflehog's regex
-                    output. Overrides context flag. Default: false
   -f  --forks       Specifies whether forked repos are included or not.
                     Default: false
-      --cleanup     Remove all temporary directories used for cloning. Default:
-                    false
-      --depth       Specify the depth limit of commits fetched when cloning.
-                    Default: 100000
   -n  --noise       Specify the maximum noise level of findings to output.
                     Default: 3
+      --depth       Specify the depth limit of commits fetched when cloning.
+                    Default: 100000
+      --config      JSON file containing yar config.
+      --cleanup     Remove all cloned directories used for caching. Default:
+                    false
+      --no-context  Only show the secret itself, similar to trufflehog's regex
+                    output. Overrides context flag. Default: false
 ```
 
 ## Acknowledgements
