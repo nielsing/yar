@@ -167,7 +167,8 @@ func GetDiffs(m *Middleware, change *object.Change, reponame string) ([]string, 
 			continue
 		}
 		for _, chunk := range file.Chunks() {
-			if chunk.Type() != 1 {
+			// Only look at diffs that add/remove something
+			if chunk.Type() == 0 {
 				continue
 			}
 			diff := strings.Trim(chunk.Content(), " \n")
@@ -179,9 +180,9 @@ func GetDiffs(m *Middleware, change *object.Change, reponame string) ([]string, 
 
 // GetDiffs helper
 func getFilepath(file diff.FilePatch) string {
-	_, to := file.Files()
-	if to == nil {
-		return ""
+	from, to := file.Files()
+	if from != nil {
+		return from.Path()
 	}
 	return to.Path()
 }
