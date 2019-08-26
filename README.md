@@ -18,7 +18,7 @@ To install this you simply run the following command.
 go get github.com/Furduhlutur/yar
 ```
 
-Just make sure that you have the GOPATH environment variable set in your preferred shell rc and that the $GOPATH/bin directory is in your PATH.
+Just make sure that you have the GOPATH environment variable set in your preferred shell rc and that the $GOPATH/bin directory is in your PATH. More info [here](https://golang.org/doc/code.html#GOPATH).
 
 ## Usage
 ### Want to search for secrets in an organization?
