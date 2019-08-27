@@ -30,8 +30,8 @@ type Flags struct {
 }
 
 type bound struct {
-	upper int
 	lower int
+	upper int
 }
 
 func validateInt(argname string, arg string, bound *bound) error {
@@ -100,7 +100,7 @@ func ParseFlags() *Flags {
 			Help:     "Specify the maximum noise level of findings to output",
 			Default:  3,
 			Validate: func(args []string) error {
-				return validateInt("Noiselevel", args[0], &bound{0, 5})
+				return validateInt("Noiselevel", args[0], &bound{1, 5})
 			},
 		}),
 
