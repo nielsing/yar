@@ -1,7 +1,6 @@
 package robber
 
 import (
-	"path/filepath"
 	"strings"
 
 	"gopkg.in/src-d/go-git.v4"
@@ -64,7 +63,7 @@ func cloneRepo(m *Middleware, url string, cloneFolder string) (*git.Repository, 
 func OpenRepo(m *Middleware, path string) (*git.Repository, error) {
 	dir, exists := GetDir(path)
 	if !exists {
-		repo, err := git.PlainOpen(filepath.Join(dir, ".git"))
+		repo, err := git.PlainOpen(dir)
 		if err != nil {
 			return nil, err
 		}
