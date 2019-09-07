@@ -22,6 +22,7 @@ type Middleware struct {
 	Client      *github.Client
 	AccessToken string
 	RepoCount   *int32
+	Findings    []*Finding
 }
 
 // NewMiddleware creates a new Middleware and returns it.

@@ -2,6 +2,8 @@ package robber
 
 import (
 	"context"
+	"encoding/json"
+	"io/ioutil"
 	"math"
 	"net/http"
 	"os"
@@ -15,6 +17,18 @@ import (
 const (
 	envTokenVariable = "YAR_GITHUB_TOKEN"
 )
+
+type jsonFinding []struct {
+	Reason        string `json:"Reason"`
+	Filepath      string `json:"Filepath"`
+	RepoName      string `json:"RepoName"`
+	Commiter      string `json:"Commiter"`
+	CommitHash    string `json:"CommitHash"`
+	DateOfCommit  string `json:"DateOfCommit"`
+	CommitMessage string `json:"CommitMessage"`
+	Link          string `json:"Link"`
+	Secret        string `json:"Secret"`
+}
 
 // CleanUp deletes all temp directories which were created for cloning of repositories.
 func CleanUp(m *Middleware) {
@@ -114,13 +128,36 @@ func PrintEntropyFinding(validStrings []string, m *Middleware, diffObject *DiffO
 		entropy := EntropyCheck(validString, B64chars)
 		if entropy > threshold {
 			context, indexes := FindContext(m, *diffObject.Diff, validString)
+			diffObject.Diff = &context
 			secretString := context[indexes[0]:indexes[1]]
 			if !m.SecretExists(*diffObject.Reponame, secretString) {
 				m.AddSecret(*diffObject.Reponame, secretString)
-				m.Logger.LogFinding(NewFinding("Entropy Check", indexes, diffObject), m, context)
+				finding := NewFinding("Entropy Check", indexes, diffObject)
+				m.Findings = append(m.Findings, finding)
+				m.Logger.LogFinding(finding, m)
 			}
 		}
 	}
+}
+
+// SaveFindings saves all findings to a JSON file named findings.json
+func SaveFindings(findings []*Finding) {
+	var savedFindings jsonFinding
+	for _, finding := range findings {
+		savedFindings = append(savedFindings, jsonFinding{{
+			Reason:        finding.Reason,
+			Filepath:      finding.Filepath,
+			RepoName:      finding.RepoName,
+			Commiter:      finding.Committer,
+			CommitHash:    finding.CommitHash,
+			DateOfCommit:  finding.DateOfCommit,
+			CommitMessage: finding.CommitMessage,
+			Link:          strings.Join([]string{finding.RepoName, "commit", finding.CommitHash}, "/"),
+			Secret:        finding.Diff[finding.Secret[0]:finding.Secret[1]],
+		}}...)
+	}
+	content, _ := json.MarshalIndent(savedFindings, "", "  ")
+	_ = ioutil.WriteFile("findings.json", content, 0644)
 }
 
 // GetAccessToken retreives access token from env variables and returns an oauth2 client.

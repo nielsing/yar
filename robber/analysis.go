@@ -9,13 +9,15 @@ import (
 )
 
 const (
+	// B64chars is used for entropy finding of base64 strings.
 	B64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
+	// Hexchars is used for entropy finding of hex based strings.
 	Hexchars = "1234567890abcdefABCDEF"
 )
 
 // AnalyzeEntropyDiff breaks a given diff into words and finds valid base64 and hex
 // strings within a word and finally runs an entropy check on the valid string.
-// Code taken from https://github.com/dxa4481/truffleHog
+// Code taken from https://github.com/dxa4481/truffleHog.
 func AnalyzeEntropyDiff(m *Middleware, diffObject *DiffObject) {
 	words := strings.Fields(*diffObject.Diff)
 	for _, word := range words {
@@ -47,8 +49,10 @@ func AnalyzeRegexDiff(m *Middleware, diffObject *DiffObject) {
 					newSecret = true
 				}
 				if newSecret {
+					diffObject.Diff = &newDiff
 					finding := NewFinding(rule.Reason, secret, diffObject)
-					m.Logger.LogFinding(finding, m, newDiff)
+					m.Findings = append(m.Findings, finding)
+					m.Logger.LogFinding(finding, m)
 					break
 				}
 			}

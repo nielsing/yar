@@ -1,5 +1,8 @@
 yar
+findings.json
+
 .vscode/
+
 config/rules.json
 config/noisyrules.json
 config/truffleRules.json

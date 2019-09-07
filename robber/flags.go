@@ -19,12 +19,13 @@ type Flags struct {
 	User        *string
 	Repo        *string
 	Config      *os.File
-	Context     *int
 	Entropy     *bool
 	Both        *bool
+	Save        *bool
 	NoContext   *bool
 	Forks       *bool
 	CleanUp     *bool
+	Context     *int
 	CommitDepth *int
 	Noise       *int
 }
@@ -102,6 +103,12 @@ func ParseFlags() *Flags {
 			Validate: func(args []string) error {
 				return validateInt("Noiselevel", args[0], &bound{1, 5})
 			},
+		}),
+
+		Save: parser.Flag("s", "save", &argparse.Options{
+			Required: false,
+			Help:     "Yar will save all findings to a file named findings.json if this flag is set",
+			Default:  false,
 		}),
 
 		CommitDepth: parser.Int("", "depth", &argparse.Options{

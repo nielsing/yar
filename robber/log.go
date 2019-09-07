@@ -109,6 +109,7 @@ func NewFinding(reason string, secret []int, diffObject *DiffObject) *Finding {
 		Secret:        secret,
 		RepoName:      *diffObject.Reponame,
 		Filepath:      *diffObject.Filepath,
+		Diff:          *diffObject.Diff,
 	}
 	return finding
 }
@@ -141,7 +142,7 @@ func (l *Logger) logSecret(diff string, booty []int, contextNum int) {
 }
 
 // LogFinding is used to output Findings
-func (l *Logger) LogFinding(f *Finding, m *Middleware, diff string) {
+func (l *Logger) LogFinding(f *Finding, m *Middleware) {
 	l.Lock()
 	defer l.Unlock()
 	info, _ := logColors[info]
@@ -166,9 +167,9 @@ func (l *Logger) LogFinding(f *Finding, m *Middleware, diff string) {
 	info.Printf("Commit message: ")
 	data.Printf("%s\n\n", strings.Trim(f.CommitMessage, "\n"))
 	if *m.Flags.NoContext {
-		secret.Printf("%s\n\n", diff[f.Secret[0]:f.Secret[1]])
+		secret.Printf("%s\n\n", f.Diff[f.Secret[0]:f.Secret[1]])
 	} else {
-		l.logSecret(diff, f.Secret, *m.Flags.Context)
+		l.logSecret(f.Diff, f.Secret, *m.Flags.Context)
 	}
 }
 
