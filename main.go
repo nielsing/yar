@@ -3,7 +3,6 @@ package main
 import (
 	"os"
 	"os/signal"
-	"syscall"
 
 	"github.com/Furduhlutur/yar/robber"
 )
@@ -14,8 +13,9 @@ func main() {
 	kill := make(chan bool)
 	cleanup := make(chan bool)
 	finished := make(chan bool)
-	sigc := make(chan os.Signal)
-	signal.Notify(sigc, syscall.SIGINT)
+	sigc := make(chan os.Signal, 2)
+	signal.Notify(sigc, os.Interrupt)
+	go robber.HandleSigInt(m, sigc, kill, finished, cleanup)
 	go robber.HandleSigInt(m, sigc, kill, finished, cleanup)
 
 	m.Start(kill, finished, cleanup)

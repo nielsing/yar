@@ -18,6 +18,10 @@ const (
 	envTokenVariable = "YAR_GITHUB_TOKEN"
 )
 
+var (
+	count = 0
+)
+
 type jsonFinding []struct {
 	Reason        string `json:"Reason"`
 	Filepath      string `json:"Filepath"`
@@ -42,12 +46,21 @@ func CleanUp(m *Middleware) {
 // HandleSigInt captures the SIGINT signal and removes the cache folder.
 // This is done to avoid nil pointers for future runs of yar.
 func HandleSigInt(m *Middleware, sigc chan os.Signal, kill chan<- bool, finished <-chan bool, cleanup chan<- bool) {
-	<-sigc
-	m.Logger.LogInfo("Signal reveived, killing threads!\n")
-	kill <- true
-	<-finished
-	CleanUp(m)
-	cleanup <- true
+	for {
+		select {
+		case <-sigc:
+			count++
+			if count == 2 {
+				os.Exit(1)
+			}
+			m.Logger.LogInfo("Killing all threads!\n")
+			m.Logger.LogInfo("Press Ctrl-C again to force quit\n")
+			kill <- true
+			<-finished
+			CleanUp(m)
+			cleanup <- true
+		}
+	}
 }
 
 // GetDir returns the respective directory of a given cloneurl and whether it exists.
