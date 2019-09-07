@@ -167,11 +167,12 @@ Arguments:
 
 ## Future plans
 ### Near future
-+ Go modules are on there way for easier contribution.
-+ There is a much much much better yarconfig file on its way.
++ Go modules are on their way for easier contribution.
++ There is a much much much better yarconfig file on its way as well.
 + A filter option to filter secrets which are obvious false positives.
 
 ### Ideas which might be implemented
++ Testing environment
 + Email extraction
 + Gitlab support
 
