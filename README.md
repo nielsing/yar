@@ -92,6 +92,11 @@ Add your github token to your environment variables.
 export YAR_GITHUB_TOKEN=YOUR_TOKEN_HERE
 ```
 
+### Want to save your findings to a JSON file for later analysis?
+```
+yar -o orgname --save
+```
+
 ### Don't like the default colors and want to add your own color settings?
 It is possible to customize the colors of the output for Yar through environment variables.
 The possible colors to choose from are the following:
@@ -130,16 +135,16 @@ Like so `export YAR_COLOR_SECRET="hiRed bold"`.
 ## Help
 ```
 usage: yar [-h|--help] [-o|--org "<value>"] [-u|--user "<value>"] [-r|--repo
-           "<value>"] [--config <file>] [-c|--context <integer>] [-e|--entropy]
-           [-b|--both] [-f|--forks] [-n|--noise <integer>] [--depth <integer>]
-           [--cleanup] [--no-context]
+           "<value>"] [-c|--context <integer>] [-e|--entropy] [-b|--both]
+           [-f|--forks] [-n|--noise <integer>] [-s|--save] [--depth <integer>]
+           [--config <file>] [--cleanup] [--no-context]
 
            Sail ye seas of git for booty is to be found
 
 Arguments:
 
   -h  --help        Print help information
-  -o  --org         Organization to plunder.
+  -o  --org         Organization to plunder. 
   -u  --user        User to plunder.
   -r  --repo        Repository to plunder.
   -c  --context     Show N number of lines for context. Default: 2
@@ -150,14 +155,25 @@ Arguments:
                     Default: false
   -n  --noise       Specify the maximum noise level of findings to output.
                     Default: 3
+  -s  --save        Yar will save all findings to a file named findings.json if
+                    this flag is set. Default: false
       --depth       Specify the depth limit of commits fetched when cloning.
                     Default: 100000
       --config      JSON file containing yar config.
-      --cleanup     Remove all cloned directories used for caching. Default:
-                    false
+      --cleanup     Remove all cloned directories used for caching.
       --no-context  Only show the secret itself, similar to trufflehog's regex
                     output. Overrides context flag. Default: false
 ```
+
+## Future plans
+### Near future
++ Go modules are on there way for easier contribution.
++ There is a much much much better yarconfig file on its way.
++ A filter option to filter secrets which are obvious false positives.
+
+### Ideas which might be implemented
++ Email extraction
++ Gitlab support
 
 ## Acknowledgements
 It is important to point out that this idea is inspired by the infamous [truffleHog](https://github.com/dxa4481/truffleHog) tool 
