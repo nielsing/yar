@@ -49,10 +49,8 @@ func AnalyzeRegexDiff(m *Middleware, diffObject *DiffObject) {
 					newSecret = true
 				}
 				if newSecret {
-					diffObject.Diff = &newDiff
 					finding := NewFinding(rule.Reason, secret, diffObject)
-					m.Findings = append(m.Findings, finding)
-					m.Logger.LogFinding(finding, m)
+					m.Logger.LogFinding(finding, m, newDiff)
 					break
 				}
 			}

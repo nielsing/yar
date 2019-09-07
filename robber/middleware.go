@@ -61,6 +61,13 @@ func (m *Middleware) SecretExists(reponame string, secret string) bool {
 	return m.Secrets[reponame][secret]
 }
 
+// Append appends finding to Middlewares Findings array if save mode is enabled.
+func (m *Middleware) Append(finding *Finding) {
+	if *m.Flags.Save {
+		m.Findings = append(m.Findings, finding)
+	}
+}
+
 // Start handles the CLI args and starts yar accordingly.
 func (m *Middleware) Start(kill chan bool, finished chan<- bool, cleanup <-chan bool) {
 	wg := new(sync.WaitGroup)
