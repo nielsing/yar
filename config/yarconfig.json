@@ -1,18 +1,8 @@
 {
     "Rules": [
         {
-            "Reason": "AWS API Key",
-            "Rule": "AKIA[0-9A-Z]{16}",
-            "Noise": 3
-        },
-        {
             "Reason": "AWS Access Key ID Value",
             "Rule": "(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}",
-            "Noise": 3
-        },
-        {
-            "Reason": "AWS Access Key ID",
-            "Rule": "((\\\"|'|`)?((?i)aws)?_?((?i)access)_?((?i)key)?_?((?i)id)?(\\\"|'|`)?\\\\s{0,50}(:|=>|=)\\\\s{0,50}(\\\"|'|`)?(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}(\\\"|'|`)?)",
             "Noise": 3
         },
         {
@@ -28,11 +18,6 @@
         {
             "Reason": "AWS Session Token",
             "Rule": "((\\\"|'|`)?((?i)aws)?_?((?i)session)?_?((?i)token)?(\\\"|'|`)?\\\\s{0,50}(:|=>|=)\\\\s{0,50}(\\\"|'|`)?[A-Za-z0-9/+=]{16,}(\\\"|'|`)?)",
-            "Noise": 3
-        },
-        {
-            "Reason": "Amazon AWS Access Key ID",
-            "Rule": "AKIA[0-9A-Z]{16}",
             "Noise": 3
         },
         {
@@ -57,7 +42,7 @@
         },
         {
             "Reason": "Facebook Oauth",
-            "Rule": "(?i)facebook.{0,50}(\\\"|'|`)?[0-9a-f]{32}(\\\"|'|`)?",
+            "Rule": "(?i)facebook[^/]{0,50}(\\\"|'|`)?[0-9a-f]{32}(\\\"|'|`)?",
             "Noise": 3
         },
         {
@@ -71,32 +56,7 @@
             "Noise": 3
         },
         {
-            "Reason": "Google Cloud Platform API Key",
-            "Rule": "AIza[0-9A-Za-z\\-_]{35}",
-            "Noise": 3
-        },
-        {
-            "Reason": "Google Cloud Platform OAuth",
-            "Rule": "[0-9]+-[0-9A-Za-z_]{32}\\.apps\\.googleusercontent\\.com",
-            "Noise": 3
-        },
-        {
-            "Reason": "Google Drive API Key",
-            "Rule": "AIza[0-9A-Za-z\\-_]{35}",
-            "Noise": 3
-        },
-        {
-            "Reason": "Google Drive OAuth",
-            "Rule": "[0-9]+-[0-9A-Za-z_]{32}\\.apps\\.googleusercontent\\.com",
-            "Noise": 3
-        },
-        {
-            "Reason": "Google Gmail API Key",
-            "Rule": "AIza[0-9A-Za-z\\-_]{35}",
-            "Noise": 3
-        },
-        {
-            "Reason": "Google Gmail OAuth",
+            "Reason": "Google OAuth",
             "Rule": "[0-9]+-[0-9A-Za-z_]{32}\\.apps\\.googleusercontent\\.com",
             "Noise": 3
         },
@@ -108,16 +68,6 @@
         {
             "Reason": "Google Oauth",
             "Rule": "((\\\"|'|`)?client_secret(\\\"|'|`)?\\\\s{0,50}(:|=>|=)\\\\s{0,50}(\\\"|'|`)?[a-zA-Z0-9-_]{24}(\\\"|'|`)?)",
-            "Noise": 3
-        },
-        {
-            "Reason": "Google YouTube API Key",
-            "Rule": "AIza[0-9A-Za-z\\-_]{35}",
-            "Noise": 3
-        },
-        {
-            "Reason": "Google YouTube OAuth",
-            "Rule": "[0-9]+-[0-9A-Za-z_]{32}\\.apps\\.googleusercontent\\.com",
             "Noise": 3
         },
         {
@@ -141,23 +91,8 @@
             "Noise": 3
         },
         {
-            "Reason": "NPM",
-            "Rule": "(?i)npm.{0,50}(\\\"|'|`)?[0-9a-f-]{36}(\\\"|'|`)?",
-            "Noise": 3
-        },
-        {
             "Reason": "Outlook team",
-            "Rule": "(https\\://outlook\\.office.com/webhook/[0-9a-f-]{36}\\@)",
-            "Noise": 3
-        },
-        {
-            "Reason": "PGP private key block",
-            "Rule": "-----BEGIN PGP PRIVATE KEY BLOCK-----",
-            "Noise": 3
-        },
-        {
-            "Reason": "Password in URL",
-            "Rule": "[a-zA-Z]{3,10}://[^/\\s:@]{3,20}:[^/\\s:@]{3,20}@.{1,100}[\"'\\s]",
+            "Rule": "https\\://outlook\\.office.com/webhook/[0-9a-f-]{36}\\@",
             "Noise": 3
         },
         {
@@ -168,6 +103,11 @@
         {
             "Reason": "Picatic API Key",
             "Rule": "sk_live_[0-9a-z]{32}",
+            "Noise": 3
+        },
+        {
+            "Reason": "PGP private key block",
+            "Rule": "-----BEGIN PGP PRIVATE KEY BLOCK-----",
             "Noise": 3
         },
         {
@@ -241,22 +181,69 @@
             "Noise": 3
         },
         {
-            "Reason": "Twitter Access Token",
-            "Rule": "(?i)twitter.{0,50}[1-9][0-9]+-[0-9a-zA-Z]{40}",
-            "Noise": 3
-        },
-        {
             "Reason": "Twitter Oauth",
-            "Rule": "(?i)twitter.{0,50}(\\\"|'|`)?[0-9a-zA-Z]{35,44}(\\\"|'|`)?",
+            "Rule": "(?i)twitter[^/]{0,50}[0-9a-zA-Z]{35,44}",
             "Noise": 3
         },
         {
-            "Reason": "URL Authorization",
-            "Rule": "([a-zA-Z]{3,10}://[^/$\\\\s:@]{3,20}:[^/$\\\\s:@]{3,20}@.{1,100}[\"'$\\\\s])",
+            "Reason": "Password in URL",
+            "Rule": "[a-zA-Z]{3,10}://[^/\\s:@]{3,20}:[^/\\s:@]{3,20}@.{1,100}[\"'\\s]",
             "Noise": 3
+        },
+        {
+            "Reason": "S3 Buckets",
+            "Rule": "[a-z0-9.-]+\\.s3\\.amazonaws\\.com|[a-z0-9.-]+\\.s3-[a-z0-9-]\\.amazonaws\\.com|[a-z0-9.-]+\\.s3-website[.-](eu|ap|us|ca|sa|cn)|//s3\\.amazonaws\\.com/[a-z0-9._-]+|//s3-[a-z0-9-]+\\.amazonaws\\.com/[a-z0-9._-]+",
+            "Noise": 4
+        },
+        {
+            "Reason": "Generic certificate header",
+            "Rule": "-----BEGIN .{3,100}-----",
+            "Noise": 4
+        },
+        {
+            "Reason": "Generic Password",
+            "Rule": "(?i)pass(word)?[\\w-]*\\\\s*[=:>|]+\\s*['\"`][^'\"`]{3,100}['\"`]",
+            "Noise": 4
+        },
+        {
+            "Reason": "Generic Secret",
+            "Rule": "(?i)secret[\\w-]*\\s*[=:>|]+\\s*['\"`][^'\"`]{3,100}['\"`]",
+            "Noise": 4
+        },
+        {
+            "Reason": "Generic Token",
+            "Rule": "(?i)token[\\w-]*\\s*[=:>|]+\\s*['\"`][^'\"`]{3,100}['\"`]",
+            "Noise": 4
+        },
+        {
+            "Reason": "Base64",
+            "Rule": "([^A-Za-z0-9+/]|^)(eyJ|YTo|Tzo|PD[89]|aHR0cHM6L|aHR0cDo|rO0)[%a-zA-Z0-9+/]+={0,2}",
+            "Noise": 4
+        },
+        {
+            "Reason": "IP Address",
+            "Rule": "(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])",
+            "Noise": 5
+        },
+        {
+            "Reason": "Common secret names",
+            "Rule": "(?i)aws_access|aws_secret|api[_-]?key|listbucketresult|s3_access_key|authorization:|ssh-rsa AA|pass(word)?|secret|token|",
+            "Noise": 5
+        },
+        {
+            "Reason": "Suspicious Comments",
+            "Rule": "(?i)\\b(hack|hax|fix|oo+ps|fuck|ugly|todo|shit)\\b",
+            "Noise": 5
         }
+
     ],
     "FileBlacklist": [
-        "^.*\\.lock$"
+        "\\.min\\.js$",
+        "\\.(less|s?css|html|lock|pbxproj)$",
+        "node_modules/",
+        "package-lock\\.json$",
+        "bower\\.json$",
+        "\\.pdf$",
+        "npm-debug\\.log"
     ]
 }
