@@ -150,6 +150,7 @@ func (l *Logger) LogFinding(f *Finding, m *Middleware, contextDiff string) {
 	info, _ := logColors[info]
 	data, _ := logColors[data]
 	secret, _ := logColors[secret]
+	repoPath, _ := GetDir(f.RepoName)
 
 	info.Println(seperator)
 	info.Printf("Reason: ")
@@ -166,6 +167,8 @@ func (l *Logger) LogFinding(f *Finding, m *Middleware, contextDiff string) {
 	data.Println(f.CommitHash)
 	info.Printf("Date of commit: ")
 	data.Println(f.DateOfCommit)
+	info.Printf("View command: ")
+	data.Printf("git --git-dir=%s show %s:%s\n", repoPath, f.CommitHash[:6], f.Filepath)
 	info.Printf("Commit message: ")
 	data.Printf("%s\n\n", strings.Trim(f.CommitMessage, "\n"))
 	if *m.Flags.NoContext {
