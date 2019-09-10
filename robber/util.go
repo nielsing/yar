@@ -65,7 +65,7 @@ func HandleSigInt(m *Middleware, sigc chan os.Signal, kill chan<- bool, finished
 
 // GetDir returns the respective directory of a given cloneurl and whether it exists.
 func GetDir(cloneurl string) (string, bool) {
-	if _, err := os.Stat(cloneurl); err == nil {
+	if _, err := os.Stat(cloneurl); !os.IsNotExist(err) {
 		return cloneurl, true
 	}
 	names := strings.Split(cloneurl, "/")
@@ -73,7 +73,7 @@ func GetDir(cloneurl string) (string, bool) {
 	childFolder := strings.Replace(names[len(names)-1], ".git", "", -1)
 	dir := filepath.Join(os.TempDir(), "yar", parentFolder, childFolder)
 	_, err := os.Stat(dir)
-	return dir, os.IsNotExist(err)
+	return dir, !os.IsNotExist(err)
 }
 
 // FindValidStrings finds parts of a word which are valid in respect
