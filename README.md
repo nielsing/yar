@@ -165,17 +165,6 @@ Arguments:
                     output. Overrides context flag. Default: false
 ```
 
-## Future plans
-### Near future
-+ Go modules are on their way for easier contribution.
-+ There is a much much much better yarconfig file on its way as well.
-+ A filter option to filter secrets which are obvious false positives.
-
-### Ideas which might be implemented
-+ Testing environment
-+ Email extraction
-+ Gitlab support
-
 ## Acknowledgements
 It is important to point out that this idea is inspired by the infamous [truffleHog](https://github.com/dxa4481/truffleHog) tool 
 and the code used for entropy searching is in fact borrowed from the truffleHog repository which in turn is borrowed from 
