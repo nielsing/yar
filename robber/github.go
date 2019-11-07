@@ -3,6 +3,9 @@ package robber
 import (
 	"context"
 	"github.com/google/go-github/github"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -23,8 +26,29 @@ func handleGithubError(m *Middleware, err error, name string) {
 	m.Logger.LogFail("%s\n", err)
 }
 
+func getCachedUserOrOrg(name string) []*string {
+	repos := []*string{}
+	folderPath := filepath.Join(os.TempDir(), "yar", name)
+	files, err := ioutil.ReadDir(folderPath)
+
+	if err != nil {
+		return []*string{}
+	}
+
+	for _, file := range files {
+		gitFolder := filepath.Join(folderPath, file.Name())
+		repos = append(repos, &gitFolder)
+	}
+	return repos
+}
+
 // GetUserRepos returns all non forked public repositories for a given user.
 func GetUserRepos(m *Middleware, username string) []*string {
+	cloneUrls := getCachedUserOrOrg(username)
+	if len(cloneUrls) != 0 {
+		return cloneUrls
+	}
+
 	cloneURLs := []*string{}
 	opt := &github.RepositoryListOptions{Type: "public", ListOptions: github.ListOptions{PerPage: 100}}
 	for {
@@ -47,6 +71,11 @@ func GetUserRepos(m *Middleware, username string) []*string {
 
 // GetOrgRepos returns all repositories of a given organization.
 func GetOrgRepos(m *Middleware, orgname string) []*string {
+	cloneUrls := getCachedUserOrOrg(orgname)
+	if len(cloneUrls) != 0 {
+		return cloneUrls
+	}
+
 	cloneURLs := []*string{}
 	opt := &github.RepositoryListByOrgOptions{ListOptions: github.ListOptions{PerPage: 100}}
 	for {

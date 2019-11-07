@@ -25,6 +25,7 @@ type Flags struct {
 	NoContext   *bool
 	Forks       *bool
 	CleanUp     *bool
+	NoBare      *bool
 	Context     *int
 	CommitDepth *int
 	Noise       *int
@@ -64,25 +65,21 @@ func ParseFlags() *Flags {
 		Org: parser.String("o", "org", &argparse.Options{
 			Required: false,
 			Help:     "Organization to plunder",
-			Default:  "",
 		}),
 
 		User: parser.String("u", "user", &argparse.Options{
 			Required: false,
 			Help:     "User to plunder",
-			Default:  "",
 		}),
 
 		Repo: parser.String("r", "repo", &argparse.Options{
 			Required: false,
 			Help:     "Repository to plunder",
-			Default:  "",
 		}),
 
 		Save: parser.String("s", "save", &argparse.Options{
 			Required: false,
 			Help:     "Yar will save all findings to a specified file",
-			Default:  "findings.json",
 		}),
 
 		Context: parser.Int("c", "context", &argparse.Options{
@@ -129,6 +126,12 @@ func ParseFlags() *Flags {
 			Validate: func(args []string) error {
 				return validateInt("Depth", args[0], &bound{0, maxInt})
 			},
+		}),
+
+		NoBare: parser.Flag("", "nobare", &argparse.Options{
+			Required: false,
+			Help:     "Clone the whole repository",
+			Default:  false,
 		}),
 
 		Config: parser.File("", "config", os.O_RDONLY, 0600, &argparse.Options{

@@ -8,7 +8,6 @@ import (
 	"math"
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -37,7 +36,7 @@ type jsonFinding []struct {
 
 // CleanUp deletes all temp directories which were created for cloning of repositories.
 func CleanUp(m *Middleware) {
-	err := os.RemoveAll(path.Join(os.TempDir(), "yar"))
+	err := os.RemoveAll(filepath.Join(os.TempDir(), "yar"))
 	if err != nil {
 		m.Logger.LogWarn("Unable to remove the cache folder!")
 	}
@@ -153,9 +152,8 @@ func PrintEntropyFinding(validStrings []string, m *Middleware, diffObject *DiffO
 }
 
 func saveFindingsHelper(repoName string, hash string, filePath string) string {
-	repoPath, cached := GetDir(repoName)
-	if cached {
-		return fmt.Sprintf("git --git-dir=%s show %s:%s\n", repoPath, hash[:6], filePath)
+	if strings.HasPrefix(repoName, "/tmp") {
+		return fmt.Sprintf("git --git-dir=%s show %s:%s", repoName, hash[:6], filePath)
 	}
 	return strings.Join([]string{repoName, "commit", hash}, "/")
 }
@@ -164,11 +162,12 @@ func saveFindingsHelper(repoName string, hash string, filePath string) string {
 func SaveFindings(m *Middleware) {
 	var savedFindings jsonFinding
 	for _, finding := range m.Findings {
-		source := saveFindingsHelper(finding.RepoName, finding.CommitHash, finding.Filepath)
+		repoName := strings.Replace(finding.RepoName, ".git", "", 1)
+		source := saveFindingsHelper(repoName, finding.CommitHash, finding.Filepath)
 		savedFindings = append(savedFindings, jsonFinding{{
 			Reason:        finding.Reason,
 			Filepath:      finding.Filepath,
-			RepoName:      finding.RepoName,
+			RepoName:      repoName,
 			Commiter:      finding.Committer,
 			CommitHash:    finding.CommitHash,
 			DateOfCommit:  finding.DateOfCommit,

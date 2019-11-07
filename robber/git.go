@@ -50,7 +50,7 @@ func getCloneOptions(m *Middleware, url string) *git.CloneOptions {
 // and clones the given URL into it.
 func cloneRepo(m *Middleware, url string, cloneFolder string) (*git.Repository, error) {
 	opt := getCloneOptions(m, url)
-	repo, err := git.PlainClone(cloneFolder, true, opt)
+	repo, err := git.PlainClone(cloneFolder, !*m.Flags.NoBare, opt)
 	if err != nil {
 		return nil, err
 	}

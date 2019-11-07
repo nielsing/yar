@@ -160,7 +160,7 @@ func (l *Logger) LogFinding(f *Finding, m *Middleware, contextDiff string) {
 		data.Println(f.Filepath)
 	}
 	info.Printf("Repo name: ")
-	data.Println(f.RepoName)
+	data.Println(strings.Replace(f.RepoName, ".git", "", 1))
 	info.Printf("Committer: ")
 	data.Printf("%s (%s)\n", f.Committer, f.Email)
 	info.Printf("Commit hash: ")
