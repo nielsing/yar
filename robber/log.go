@@ -165,10 +165,10 @@ func (l *Logger) LogFinding(f *Finding, m *Middleware, contextDiff string) {
 	data.Printf("%s (%s)\n", f.Committer, f.Email)
 	info.Printf("Commit hash: ")
 	data.Println(f.CommitHash)
+	info.Printf("View commit: ")
+	data.Printf("git --git-dir=%s show %s:%s\n", repoPath, f.CommitHash[:6], f.Filepath)
 	info.Printf("Date of commit: ")
 	data.Println(f.DateOfCommit)
-	info.Printf("View command: ")
-	data.Printf("git --git-dir=%s show %s:%s\n", repoPath, f.CommitHash[:6], f.Filepath)
 	info.Printf("Commit message: ")
 	data.Printf("%s\n\n", strings.Trim(f.CommitMessage, "\n"))
 	if *m.Flags.NoContext {

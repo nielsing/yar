@@ -18,16 +18,18 @@ type Flags struct {
 	Org         *string
 	User        *string
 	Repo        *string
+	Save        *os.File
 	Config      *os.File
 	Entropy     *bool
 	Both        *bool
-	Save        *bool
 	NoContext   *bool
 	Forks       *bool
 	CleanUp     *bool
 	Context     *int
 	CommitDepth *int
 	Noise       *int
+
+	SavePresent *bool
 }
 
 type bound struct {
@@ -44,6 +46,15 @@ func validateInt(argname string, arg string, bound *bound) error {
 		return fmt.Errorf("%s must be a number between %d and %d", argname, bound.lower, bound.upper)
 	}
 	return nil
+}
+
+func flagPresent(shortHand string, name string) bool {
+	for _, val := range os.Args {
+		if val == shortHand || val == name {
+			return true
+		}
+	}
+	return false
 }
 
 // ParseFlags parses CLI arguments and returns them.
@@ -101,14 +112,8 @@ func ParseFlags() *Flags {
 			Help:     "Specify the maximum noise level of findings to output",
 			Default:  3,
 			Validate: func(args []string) error {
-				return validateInt("Noiselevel", args[0], &bound{1, 5})
+				return validateInt("Noiselevel", args[0], &bound{1, 10})
 			},
-		}),
-
-		Save: parser.Flag("s", "save", &argparse.Options{
-			Required: false,
-			Help:     "Yar will save all findings to a file named findings.json if this flag is set",
-			Default:  false,
 		}),
 
 		CommitDepth: parser.Int("", "depth", &argparse.Options{
@@ -118,6 +123,11 @@ func ParseFlags() *Flags {
 			Validate: func(args []string) error {
 				return validateInt("Depth", args[0], &bound{0, maxInt})
 			},
+		}),
+
+		Save: parser.File("s", "save", os.O_WRONLY, 0600, &argparse.Options{
+			Required: false,
+			Help:     "Yar will save all findings to a specified file",
 		}),
 
 		Config: parser.File("", "config", os.O_RDONLY, 0600, &argparse.Options{
@@ -151,6 +161,8 @@ func ParseFlags() *Flags {
 			Help:     "Only show the secret itself, similar to trufflehog's regex output. Overrides context flag",
 			Default:  false,
 		}),
+
+		SavePresent: flagPresent("-s", "--save"),
 	}
 
 	if err := parser.Parse(os.Args); err != nil {
