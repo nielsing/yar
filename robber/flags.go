@@ -18,7 +18,7 @@ type Flags struct {
 	Org         *string
 	User        *string
 	Repo        *string
-	Save        *os.File
+	Save        *string
 	Config      *os.File
 	Entropy     *bool
 	Both        *bool
@@ -29,7 +29,7 @@ type Flags struct {
 	CommitDepth *int
 	Noise       *int
 
-	SavePresent *bool
+	SavePresent bool
 }
 
 type bound struct {
@@ -79,6 +79,12 @@ func ParseFlags() *Flags {
 			Default:  "",
 		}),
 
+		Save: parser.String("s", "save", &argparse.Options{
+			Required: false,
+			Help:     "Yar will save all findings to a specified file",
+			Default:  "findings.json",
+		}),
+
 		Context: parser.Int("c", "context", &argparse.Options{
 			Required: false,
 			Help:     "Show N number of lines for context",
@@ -123,11 +129,6 @@ func ParseFlags() *Flags {
 			Validate: func(args []string) error {
 				return validateInt("Depth", args[0], &bound{0, maxInt})
 			},
-		}),
-
-		Save: parser.File("s", "save", os.O_WRONLY, 0600, &argparse.Options{
-			Required: false,
-			Help:     "Yar will save all findings to a specified file",
 		}),
 
 		Config: parser.File("", "config", os.O_RDONLY, 0600, &argparse.Options{

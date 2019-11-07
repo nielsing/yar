@@ -3,6 +3,7 @@ package robber
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -30,7 +31,7 @@ type jsonFinding []struct {
 	CommitHash    string `json:"CommitHash"`
 	DateOfCommit  string `json:"DateOfCommit"`
 	CommitMessage string `json:"CommitMessage"`
-	Link          string `json:"Link"`
+	Source        string `json:"Source"`
 	Secret        string `json:"Secret"`
 }
 
@@ -151,10 +152,19 @@ func PrintEntropyFinding(validStrings []string, m *Middleware, diffObject *DiffO
 	}
 }
 
+func saveFindingsHelper(repoName string, hash string, filePath string) string {
+	repoPath, cached := GetDir(repoName)
+	if cached {
+		return fmt.Sprintf("git --git-dir=%s show %s:%s\n", repoPath, hash[:6], filePath)
+	}
+	return strings.Join([]string{repoName, "commit", hash}, "/")
+}
+
 // SaveFindings saves all findings to a JSON file named findings.json
-func SaveFindings(findings []*Finding) {
+func SaveFindings(m *Middleware) {
 	var savedFindings jsonFinding
-	for _, finding := range findings {
+	for _, finding := range m.Findings {
+		source := saveFindingsHelper(finding.RepoName, finding.CommitHash, finding.Filepath)
 		savedFindings = append(savedFindings, jsonFinding{{
 			Reason:        finding.Reason,
 			Filepath:      finding.Filepath,
@@ -163,12 +173,12 @@ func SaveFindings(findings []*Finding) {
 			CommitHash:    finding.CommitHash,
 			DateOfCommit:  finding.DateOfCommit,
 			CommitMessage: finding.CommitMessage,
-			Link:          strings.Join([]string{finding.RepoName, "commit", finding.CommitHash}, "/"),
+			Source:        source,
 			Secret:        finding.Diff[finding.Secret[0]:finding.Secret[1]],
 		}}...)
 	}
 	content, _ := json.MarshalIndent(savedFindings, "", "  ")
-	_ = ioutil.WriteFile("findings.json", content, 0644)
+	_ = ioutil.WriteFile(*m.Flags.Save, content, 0644)
 }
 
 // GetAccessToken retreives access token from env variables and returns an oauth2 client.

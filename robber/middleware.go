@@ -63,7 +63,7 @@ func (m *Middleware) SecretExists(reponame string, secret string) bool {
 
 // Append appends finding to Middlewares Findings array if save mode is enabled.
 func (m *Middleware) Append(finding *Finding) {
-	if *m.Flags.SavePresent {
+	if m.Flags.SavePresent {
 		m.Findings = append(m.Findings, finding)
 	}
 }
