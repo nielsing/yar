@@ -51,8 +51,8 @@ func HandleSigInt(m *Middleware, sigc chan os.Signal, kill chan<- bool, finished
 
 // GetDir returns the respective directory of a given cloneurl and whether it exists.
 func GetDir(cloneurl string) (string, bool) {
-	if _, err := os.Stat(cloneurl); err != nil {
-		return cloneurl, false
+	if _, err := os.Stat(cloneurl); !os.IsNotExist(err) {
+		return cloneurl, true
 	}
 	names := strings.Split(cloneurl, "/")
 	parentFolder := names[len(names)-2]

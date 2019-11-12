@@ -131,19 +131,6 @@ func ParseFlags() *Flags {
 			},
 		}),
 
-		// Will not load from cache
-		NoBare: parser.Flag("", "nobare", &argparse.Options{
-			Required: false,
-			Help:     "Clone the whole repository",
-			Default:  false,
-		}),
-
-		NoCache: parser.Flag("", "--nocache", &argparse.Options{
-			Required: false,
-			Help:     "Don't load from cache",
-			Default:  false,
-		}),
-
 		Config: parser.File("", "config", os.O_RDONLY, 0600, &argparse.Options{
 			Required: false,
 			Help:     "JSON file containing yar config",
@@ -162,6 +149,19 @@ func ParseFlags() *Flags {
 			},
 		}),
 
+		// Will not load from cache
+		NoBare: parser.Flag("", "no-bare", &argparse.Options{
+			Required: false,
+			Help:     "Clone the whole repository",
+			Default:  false,
+		}),
+
+		NoCache: parser.Flag("", "no-cache", &argparse.Options{
+			Required: false,
+			Help:     "Don't load from cache",
+			Default:  false,
+		}),
+
 		// Overrides context flag
 		NoContext: parser.Flag("", "no-context", &argparse.Options{
 			Required: false,
@@ -169,7 +169,7 @@ func ParseFlags() *Flags {
 			Default:  false,
 		}),
 
-		IncludeMembers: parser.Flag("", "--includemembers", &argparse.Options{
+		IncludeMembers: parser.Flag("", "include-members", &argparse.Options{
 			Required: false,
 			Help:     "Include an organization's members for plunderin'",
 			Default:  false,

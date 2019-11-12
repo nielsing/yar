@@ -62,7 +62,7 @@ func cloneRepo(m *Middleware, url string, cloneFolder string) (*git.Repository, 
 // was given and tries to clone it instead.
 func OpenRepo(m *Middleware, path string) (*git.Repository, error) {
 	dir, exists := GetDir(path)
-	if exists {
+	if !*m.Flags.NoCache && exists {
 		repo, err := git.PlainOpen(dir)
 		if err != nil {
 			return nil, err
