@@ -1,6 +1,7 @@
 package robber
 
 import (
+	"os"
 	"strings"
 
 	"gopkg.in/src-d/go-git.v4"
@@ -62,7 +63,7 @@ func cloneRepo(m *Middleware, url string, cloneFolder string) (*git.Repository, 
 // was given and tries to clone it instead.
 func OpenRepo(m *Middleware, path string) (*git.Repository, error) {
 	dir, exists := GetDir(path)
-	if !*m.Flags.NoCache && exists {
+	if !*m.Flags.NoCache && !*m.Flags.NoBare && exists {
 		repo, err := git.PlainOpen(dir)
 		if err != nil {
 			return nil, err
@@ -70,6 +71,9 @@ func OpenRepo(m *Middleware, path string) (*git.Repository, error) {
 		return repo, nil
 	}
 
+	if *m.Flags.NoBare || *m.Flags.NoCache {
+		os.RemoveAll(dir)
+	}
 	repo, err := cloneRepo(m, path, dir)
 	if err != nil {
 		return nil, err

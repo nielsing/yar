@@ -29,13 +29,18 @@ func handleGithubError(m *Middleware, err error, name string) {
 // getCachedUserOrOrg retrieves cached repos under user or org.
 // First tries to read the .git folder under a folder named "name",
 // and if that doesn't exist it assumes that the folder is .git folder
-func getCachedUserOrOrg(name string) []*string {
+func getCachedUserOrOrg(m *Middleware, name string) []*string {
 	var folderPath string
 	repos := []*string{}
 	folderPath = filepath.Join(os.TempDir(), "yar", name)
 	files, err := ioutil.ReadDir(folderPath)
 
 	if err != nil {
+		return repos
+	}
+
+	if *m.Flags.NoBare || *m.Flags.NoCache {
+		os.RemoveAll(filepath.Join(os.TempDir(), "yar", name))
 		return repos
 	}
 
@@ -72,7 +77,7 @@ func getCachedOrgMembers(orgname string) []*string {
 
 // GetUserRepos returns all non forked public repositories for a given user.
 func GetUserRepos(m *Middleware, username string) []*string {
-	cache := getCachedUserOrOrg(username)
+	cache := getCachedUserOrOrg(m, username)
 	if !*m.Flags.NoCache && !*m.Flags.NoBare && len(cache) != 0 {
 		return cache
 	}
@@ -99,7 +104,7 @@ func GetUserRepos(m *Middleware, username string) []*string {
 
 // GetOrgRepos returns all repositories of a given organization.
 func GetOrgRepos(m *Middleware, orgname string) []*string {
-	cache := getCachedUserOrOrg(orgname)
+	cache := getCachedUserOrOrg(m, orgname)
 	if !*m.Flags.NoCache && !*m.Flags.NoBare && len(cache) != 0 {
 		return cache
 	}
