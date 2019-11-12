@@ -72,9 +72,9 @@ func getCachedOrgMembers(orgname string) []*string {
 
 // GetUserRepos returns all non forked public repositories for a given user.
 func GetUserRepos(m *Middleware, username string) []*string {
-	cloneUrls := getCachedUserOrOrg(username)
-	if len(cloneUrls) != 0 {
-		return cloneUrls
+	cache := getCachedUserOrOrg(username)
+	if !*m.Flags.NoCache && !*m.Flags.NoBare && len(cache) != 0 {
+		return cache
 	}
 
 	cloneURLs := []*string{}
@@ -99,11 +99,12 @@ func GetUserRepos(m *Middleware, username string) []*string {
 
 // GetOrgRepos returns all repositories of a given organization.
 func GetOrgRepos(m *Middleware, orgname string) []*string {
-	cloneURLs := getCachedUserOrOrg(orgname)
-	if len(cloneURLs) != 0 {
-		return cloneURLs
+	cache := getCachedUserOrOrg(orgname)
+	if !*m.Flags.NoCache && !*m.Flags.NoBare && len(cache) != 0 {
+		return cache
 	}
 
+	cloneURLs := []*string{}
 	opt := &github.RepositoryListByOrgOptions{ListOptions: github.ListOptions{PerPage: 100}}
 	for {
 		repos, resp, err := m.Client.Repositories.ListByOrg(context.Background(), orgname, opt)
@@ -125,11 +126,12 @@ func GetOrgRepos(m *Middleware, orgname string) []*string {
 
 // GetOrgMembers returns all members of a given organization.
 func GetOrgMembers(m *Middleware, orgname string) []*string {
-	usernames := getCachedOrgMembers(orgname)
-	if len(usernames) != 0 {
-		return usernames
+	cache := getCachedOrgMembers(orgname)
+	if !*m.Flags.NoCache && !*m.Flags.NoBare && len(cache) != 0 {
+		return cache
 	}
 
+	usernames := []*string{}
 	opt := &github.ListMembersOptions{ListOptions: github.ListOptions{PerPage: 100}}
 	for {
 		members, resp, err := m.Client.Organizations.ListMembers(context.Background(), orgname, opt)

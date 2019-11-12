@@ -138,6 +138,12 @@ func ParseFlags() *Flags {
 			Default:  false,
 		}),
 
+		NoCache: parser.Flag("", "--nocache", &argparse.Options{
+			Required: false,
+			Help:     "Don't load from cache",
+			Default:  false,
+		}),
+
 		Config: parser.File("", "config", os.O_RDONLY, 0600, &argparse.Options{
 			Required: false,
 			Help:     "JSON file containing yar config",
@@ -160,12 +166,6 @@ func ParseFlags() *Flags {
 		NoContext: parser.Flag("", "no-context", &argparse.Options{
 			Required: false,
 			Help:     "Only show the secret itself, similar to trufflehog's regex output. Overrides context flag",
-			Default:  false,
-		}),
-
-		NoCache: parser.Flag("", "--nocache", &argparse.Options{
-			Required: false,
-			Help:     "Don't load from cache",
 			Default:  false,
 		}),
 
