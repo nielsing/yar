@@ -138,9 +138,15 @@ func AnalyzeUser(m *Middleware, username string, repoch chan<- string) {
 // AnalyzeOrg simply sends two GET requests to githubs API, one for a given organizations
 // repositories and one for its' members.
 func AnalyzeOrg(m *Middleware, orgname string, repoch chan<- string) {
+	var members []*string
+	if *m.Flags.IncludeMembers {
+		members = GetOrgMembers(m, orgname)
+	} else {
+		members = []*string{}
+	}
 	repos := GetOrgRepos(m, orgname)
-	members := GetOrgMembers(m, orgname)
 	atomic.AddInt32(m.RepoCount, int32(len(repos)))
+
 	for _, repo := range repos {
 		repoch <- *repo
 	}

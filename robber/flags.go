@@ -28,8 +28,8 @@ type Flags struct {
 	NoContext      *bool
 	Forks          *bool
 	NoBare         *bool
-	IncludeMembers *bool
 	NoCache        *bool
+	IncludeMembers *bool
 	Context        *int
 	CommitDepth    *int
 
@@ -131,6 +131,7 @@ func ParseFlags() *Flags {
 			},
 		}),
 
+		// Will not load from cache
 		NoBare: parser.Flag("", "nobare", &argparse.Options{
 			Required: false,
 			Help:     "Clone the whole repository",
