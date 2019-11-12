@@ -13,6 +13,10 @@ const (
 	B64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
 	// Hexchars is used for entropy finding of hex based strings.
 	Hexchars = "1234567890abcdefABCDEF"
+	// Threshold for b64 matching of entropy strings
+	b64Threshold = 4.5
+	// Threshold for hex matching of entropy strings
+	hexThreshold = 3
 )
 
 // AnalyzeEntropyDiff breaks a given diff into words and finds valid base64 and hex
@@ -23,8 +27,8 @@ func AnalyzeEntropyDiff(m *Middleware, diffObject *DiffObject) {
 	for _, word := range words {
 		b64strings := FindValidStrings(word, B64chars)
 		hexstrings := FindValidStrings(word, Hexchars)
-		PrintEntropyFinding(b64strings, m, diffObject, 4.5)
-		PrintEntropyFinding(hexstrings, m, diffObject, 3)
+		PrintEntropyFinding(b64strings, m, diffObject, b64Threshold)
+		PrintEntropyFinding(hexstrings, m, diffObject, hexThreshold)
 	}
 }
 
@@ -76,7 +80,7 @@ func AnalyzeRepo(m *Middleware, id int, repoch <-chan string, quit chan<- bool, 
 				m.Logger.LogFail("Unable to open repo %s: %s\n", reponame, err)
 			}
 
-			commits, err := GetCommits(m.Flags.CommitDepth, repo)
+			commits, err := GetCommits(m, repo, reponame)
 			if err != nil {
 				m.Logger.LogWarn("Unable to fetch commits for %s: %s\n", reponame, err)
 				return

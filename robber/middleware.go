@@ -34,7 +34,7 @@ func NewMiddleware() *Middleware {
 	}
 	m.Logger = NewLogger(false)
 	// If CleanUp flag is given, handle immediately
-	if *m.Flags.CleanUp {
+	if m.Flags.CleanUpPresent {
 		CleanUp(m)
 	}
 	ParseConfig(m)

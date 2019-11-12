@@ -26,20 +26,48 @@ func handleGithubError(m *Middleware, err error, name string) {
 	m.Logger.LogFail("%s\n", err)
 }
 
+// getCachedUserOrOrg retrieves cached repos under user or org.
+// First tries to read the .git folder under a folder named "name",
+// and if that doesn't exist it assumes that the folder is .git folder
 func getCachedUserOrOrg(name string) []*string {
+	var folderPath string
 	repos := []*string{}
-	folderPath := filepath.Join(os.TempDir(), "yar", name)
+	folderPath = filepath.Join(os.TempDir(), "yar", name)
 	files, err := ioutil.ReadDir(folderPath)
 
 	if err != nil {
-		return []*string{}
+		return repos
 	}
 
 	for _, file := range files {
-		gitFolder := filepath.Join(folderPath, file.Name())
-		repos = append(repos, &gitFolder)
+		if file.Name() == "members.txt" {
+			continue
+		}
+		gitFolder := filepath.Join(folderPath, file.Name(), ".git")
+		if _, err := os.Stat(gitFolder); err != nil {
+			gitFolder = filepath.Dir(gitFolder)
+			repos = append(repos, &gitFolder)
+		} else {
+			repos = append(repos, &gitFolder)
+		}
 	}
 	return repos
+}
+
+func getCachedOrgMembers(orgname string) []*string {
+	members := []*string{}
+	filename := filepath.Join(os.TempDir(), "yar", orgname, "members.txt")
+	content, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return members
+	}
+
+	for _, member := range strings.Split(string(content), "\n") {
+		if member != "" {
+			members = append(members, &member)
+		}
+	}
+	return members
 }
 
 // GetUserRepos returns all non forked public repositories for a given user.
@@ -71,12 +99,11 @@ func GetUserRepos(m *Middleware, username string) []*string {
 
 // GetOrgRepos returns all repositories of a given organization.
 func GetOrgRepos(m *Middleware, orgname string) []*string {
-	cloneUrls := getCachedUserOrOrg(orgname)
-	if len(cloneUrls) != 0 {
-		return cloneUrls
+	cloneURLs := getCachedUserOrOrg(orgname)
+	if len(cloneURLs) != 0 {
+		return cloneURLs
 	}
 
-	cloneURLs := []*string{}
 	opt := &github.RepositoryListByOrgOptions{ListOptions: github.ListOptions{PerPage: 100}}
 	for {
 		repos, resp, err := m.Client.Repositories.ListByOrg(context.Background(), orgname, opt)
@@ -98,7 +125,11 @@ func GetOrgRepos(m *Middleware, orgname string) []*string {
 
 // GetOrgMembers returns all members of a given organization.
 func GetOrgMembers(m *Middleware, orgname string) []*string {
-	usernames := []*string{}
+	usernames := getCachedOrgMembers(orgname)
+	if len(usernames) != 0 {
+		return usernames
+	}
+
 	opt := &github.ListMembersOptions{ListOptions: github.ListOptions{PerPage: 100}}
 	for {
 		members, resp, err := m.Client.Organizations.ListMembers(context.Background(), orgname, opt)
@@ -111,6 +142,12 @@ func GetOrgMembers(m *Middleware, orgname string) []*string {
 			break
 		}
 		opt.Page = resp.NextPage
+	}
+	folderPath := filepath.Join(os.TempDir(), "yar", orgname)
+	os.MkdirAll(folderPath, 0777)
+	err := WriteToFile(filepath.Join(folderPath, "members.txt"), usernames)
+	if err != nil {
+		m.Logger.LogWarn("Failed to save org members of %s due to: %s\n", orgname, err)
 	}
 	return usernames
 }

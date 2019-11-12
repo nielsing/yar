@@ -3,10 +3,11 @@ package robber
 import (
 	"errors"
 	"fmt"
-	"github.com/akamensky/argparse"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/akamensky/argparse"
 )
 
 const (
@@ -15,22 +16,25 @@ const (
 
 // Flags struct keeps a hold of all of the CLI arguments that were given.
 type Flags struct {
-	Org         *string
-	User        *string
-	Repo        *string
-	Save        *string
-	Config      *os.File
-	Entropy     *bool
-	Both        *bool
-	NoContext   *bool
-	Forks       *bool
-	CleanUp     *bool
-	NoBare      *bool
-	Context     *int
-	CommitDepth *int
-	Noise       *int
+	Org            *string
+	User           *string
+	Repo           *string
+	Save           *string
+	CleanUp        *string
+	Noise          *int
+	Config         *os.File
+	Entropy        *bool
+	Both           *bool
+	NoContext      *bool
+	Forks          *bool
+	NoBare         *bool
+	IncludeMembers *bool
+	NoCache        *bool
+	Context        *int
+	CommitDepth    *int
 
-	SavePresent bool
+	SavePresent    bool
+	CleanUpPresent bool
 }
 
 type bound struct {
@@ -47,6 +51,10 @@ func validateInt(argname string, arg string, bound *bound) error {
 		return fmt.Errorf("%s must be a number between %d and %d", argname, bound.lower, bound.upper)
 	}
 	return nil
+}
+
+func validErr(err error) bool {
+	return err.Error() != "not enough arguments for -s|--save" && err.Error() != "not enough arguments for --cleanup"
 }
 
 func flagPresent(shortHand string, name string) bool {
@@ -75,11 +83,6 @@ func ParseFlags() *Flags {
 		Repo: parser.String("r", "repo", &argparse.Options{
 			Required: false,
 			Help:     "Repository to plunder",
-		}),
-
-		Save: parser.String("s", "save", &argparse.Options{
-			Required: false,
-			Help:     "Yar will save all findings to a specified file",
 		}),
 
 		Context: parser.Int("c", "context", &argparse.Options{
@@ -152,13 +155,6 @@ func ParseFlags() *Flags {
 			},
 		}),
 
-		// If cleanup is set, yar will ignore all other flags and only perform cleanup
-		CleanUp: parser.Flag("", "cleanup", &argparse.Options{
-			Required: false,
-			Help:     "Remove all cloned directories used for caching",
-			Default:  false,
-		}),
-
 		// Overrides context flag
 		NoContext: parser.Flag("", "no-context", &argparse.Options{
 			Required: false,
@@ -166,10 +162,36 @@ func ParseFlags() *Flags {
 			Default:  false,
 		}),
 
-		SavePresent: flagPresent("-s", "--save"),
+		NoCache: parser.Flag("", "--nocache", &argparse.Options{
+			Required: false,
+			Help:     "Don't load from cache",
+			Default:  false,
+		}),
+
+		IncludeMembers: parser.Flag("", "--includemembers", &argparse.Options{
+			Required: false,
+			Help:     "Include an organization's members for plunderin'",
+			Default:  false,
+		}),
+
+		SavePresent:    flagPresent("-s", "--save"),
+		CleanUpPresent: flagPresent("", "--cleanup"),
+
+		// If cleanup is set, yar will ignore all other flags and only perform cleanup
+		CleanUp: parser.String("", "cleanup", &argparse.Options{
+			Required: false,
+			Help:     "Remove specified cloned directory within yar cache folder. Leave blank to remove the cache folder completely",
+			Default:  "",
+		}),
+
+		Save: parser.String("s", "save", &argparse.Options{
+			Required: false,
+			Help:     "Yar will save all findings to a specified file",
+			Default:  "findings.json",
+		}),
 	}
 
-	if err := parser.Parse(os.Args); err != nil {
+	if err := parser.Parse(os.Args); err != nil && validErr(err) {
 		fmt.Print(parser.Usage(err))
 		os.Exit(1)
 	}
@@ -178,8 +200,11 @@ func ParseFlags() *Flags {
 }
 
 func validateFlags(flags *Flags, parser *argparse.Parser) {
-	if *flags.User == "" && *flags.Repo == "" && *flags.Org == "" && !*flags.CleanUp {
+	if *flags.User == "" && *flags.Repo == "" && *flags.Org == "" && !flags.CleanUpPresent {
 		fmt.Print(parser.Usage("Must give atleast one of org/user/repo"))
 		os.Exit(1)
+	}
+	if *flags.Save == "" {
+		*flags.Save = "findings.json"
 	}
 }

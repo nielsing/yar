@@ -2,8 +2,6 @@ package robber
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -22,21 +20,9 @@ var (
 	count = 0
 )
 
-type jsonFinding []struct {
-	Reason        string `json:"Reason"`
-	Filepath      string `json:"Filepath"`
-	RepoName      string `json:"RepoName"`
-	Commiter      string `json:"Commiter"`
-	CommitHash    string `json:"CommitHash"`
-	DateOfCommit  string `json:"DateOfCommit"`
-	CommitMessage string `json:"CommitMessage"`
-	Source        string `json:"Source"`
-	Secret        string `json:"Secret"`
-}
-
 // CleanUp deletes all temp directories which were created for cloning of repositories.
 func CleanUp(m *Middleware) {
-	err := os.RemoveAll(filepath.Join(os.TempDir(), "yar"))
+	err := os.RemoveAll(filepath.Join(os.TempDir(), "yar", *m.Flags.CleanUp))
 	if err != nil {
 		m.Logger.LogWarn("Unable to remove the cache folder!")
 	}
@@ -65,8 +51,8 @@ func HandleSigInt(m *Middleware, sigc chan os.Signal, kill chan<- bool, finished
 
 // GetDir returns the respective directory of a given cloneurl and whether it exists.
 func GetDir(cloneurl string) (string, bool) {
-	if _, err := os.Stat(cloneurl); !os.IsNotExist(err) {
-		return cloneurl, true
+	if _, err := os.Stat(cloneurl); err != nil {
+		return cloneurl, false
 	}
 	names := strings.Split(cloneurl, "/")
 	parentFolder := names[len(names)-2]
@@ -151,35 +137,6 @@ func PrintEntropyFinding(validStrings []string, m *Middleware, diffObject *DiffO
 	}
 }
 
-func saveFindingsHelper(repoName string, hash string, filePath string) string {
-	if strings.HasPrefix(repoName, "/tmp") {
-		return fmt.Sprintf("git --git-dir=%s show %s:%s", repoName, hash[:6], filePath)
-	}
-	return strings.Join([]string{repoName, "commit", hash}, "/")
-}
-
-// SaveFindings saves all findings to a JSON file named findings.json
-func SaveFindings(m *Middleware) {
-	var savedFindings jsonFinding
-	for _, finding := range m.Findings {
-		repoName := strings.Replace(finding.RepoName, ".git", "", 1)
-		source := saveFindingsHelper(repoName, finding.CommitHash, finding.Filepath)
-		savedFindings = append(savedFindings, jsonFinding{{
-			Reason:        finding.Reason,
-			Filepath:      finding.Filepath,
-			RepoName:      repoName,
-			Commiter:      finding.Committer,
-			CommitHash:    finding.CommitHash,
-			DateOfCommit:  finding.DateOfCommit,
-			CommitMessage: finding.CommitMessage,
-			Source:        source,
-			Secret:        finding.Diff[finding.Secret[0]:finding.Secret[1]],
-		}}...)
-	}
-	content, _ := json.MarshalIndent(savedFindings, "", "  ")
-	_ = ioutil.WriteFile(*m.Flags.Save, content, 0644)
-}
-
 // GetAccessToken retreives access token from env variables and returns an oauth2 client.
 func GetAccessToken(m *Middleware) (string, *http.Client) {
 	accessToken := os.Getenv(envTokenVariable)
@@ -225,4 +182,17 @@ func Min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// WriteToFile writes given string array to the given filename with each
+// instance in the array being line seperated
+func WriteToFile(filename string, values []*string) error {
+	unRefValues := []string{}
+	for _, refValue := range values {
+		unRefValues = append(unRefValues, *refValue)
+	}
+
+	value := []byte(strings.Join(unRefValues, "\n"))
+	err := ioutil.WriteFile(filename, value, 0644)
+	return err
 }

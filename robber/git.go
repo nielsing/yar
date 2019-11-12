@@ -79,7 +79,14 @@ func OpenRepo(m *Middleware, path string) (*git.Repository, error) {
 
 // GetCommits simply traverses a given repository, gathering all commits
 // and then returns a list of them.
-func GetCommits(depth *int, repo *git.Repository) ([]*object.Commit, error) {
+func GetCommits(m *Middleware, repo *git.Repository, reponame string) ([]*object.Commit, error) {
+	defer func() {
+		if r := recover(); r != nil {
+			m.Logger.LogFail("%s is corrupted please run yar --cleanup %s and try again\n",
+				reponame[9:], reponame[9:])
+		}
+	}()
+
 	var commits []*object.Commit
 	ref, err := repo.Head()
 	commitIter, err := repo.Log(&git.LogOptions{From: ref.Hash(), Order: git.LogOrderCommitterTime})
@@ -89,7 +96,7 @@ func GetCommits(depth *int, repo *git.Repository) ([]*object.Commit, error) {
 
 	count := 0
 	commitIter.ForEach(func(c *object.Commit) error {
-		if count == *depth {
+		if count == *m.Flags.CommitDepth {
 			return nil
 		}
 		commits = append(commits, c)

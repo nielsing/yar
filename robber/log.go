@@ -1,7 +1,9 @@
 package robber
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
@@ -50,6 +52,18 @@ var logColors = map[int]*color.Color{
 	succ:    color.New(color.FgGreen),
 	warn:    color.New(color.FgRed),
 	fail:    color.New(color.FgRed).Add(color.Bold),
+}
+
+type jsonFinding []struct {
+	Reason        string `json:"Reason"`
+	Filepath      string `json:"Filepath"`
+	RepoName      string `json:"RepoName"`
+	Commiter      string `json:"Commiter"`
+	CommitHash    string `json:"CommitHash"`
+	DateOfCommit  string `json:"DateOfCommit"`
+	CommitMessage string `json:"CommitMessage"`
+	Source        string `json:"Source"`
+	Secret        string `json:"Secret"`
 }
 
 // Finding struct contains data of a given secret finding, used for later output of a finding.
@@ -111,6 +125,35 @@ func NewFinding(reason string, secret []int, diffObject *DiffObject) *Finding {
 		Filepath:      *diffObject.Filepath,
 	}
 	return finding
+}
+
+func saveFindingsHelper(repoName string, hash string, filePath string) string {
+	if strings.HasPrefix(repoName, "/tmp") {
+		return fmt.Sprintf("git --git-dir=%s show %s:%s", repoName, hash[:6], filePath)
+	}
+	return strings.Join([]string{repoName, "commit", hash}, "/")
+}
+
+// SaveFindings saves all findings to a JSON file named findings.json
+func SaveFindings(m *Middleware) {
+	var savedFindings jsonFinding
+	for _, finding := range m.Findings {
+		repoName := strings.Replace(finding.RepoName, ".git", "", 1)
+		source := saveFindingsHelper(repoName, finding.CommitHash, finding.Filepath)
+		savedFindings = append(savedFindings, jsonFinding{{
+			Reason:        finding.Reason,
+			Filepath:      finding.Filepath,
+			RepoName:      repoName,
+			Commiter:      finding.Committer,
+			CommitHash:    finding.CommitHash,
+			DateOfCommit:  finding.DateOfCommit,
+			CommitMessage: finding.CommitMessage,
+			Source:        source,
+			Secret:        finding.Diff[finding.Secret[0]:finding.Secret[1]],
+		}}...)
+	}
+	content, _ := json.MarshalIndent(savedFindings, "", "  ")
+	_ = ioutil.WriteFile(*m.Flags.Save, content, 0644)
 }
 
 func (l *Logger) log(level int, format string, a ...interface{}) {
