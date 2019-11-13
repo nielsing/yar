@@ -12,8 +12,8 @@ import (
 
 const (
 	maxInt   = int(^uint(0) >> 1)
-	minBound = 0
-	maxBound = 9
+	minNoise = 0
+	maxNoise = 9
 )
 
 // Bound struct boxes a user defined integer
@@ -60,8 +60,8 @@ func validateInt(argname string, arg string, Bound Bound) (int, error) {
 func parseNoiseLevel(noise string) (Bound, error) {
 	switch length := len(noise); length {
 	case 3:
-		lower, err1 := validateInt("Noiselevel", string(noise[0]), Bound{minBound, maxBound})
-		upper, err2 := validateInt("Noiselevel", string(noise[2]), Bound{minBound, maxBound})
+		lower, err1 := validateInt("Noiselevel", string(noise[0]), Bound{minNoise, maxNoise})
+		upper, err2 := validateInt("Noiselevel", string(noise[2]), Bound{minNoise, maxNoise})
 		if err1 != nil {
 			return Bound{}, err1
 		} else if err2 != nil {
@@ -70,19 +70,22 @@ func parseNoiseLevel(noise string) (Bound, error) {
 		return Bound{lower, upper}, nil
 	case 2:
 		if string(noise[0]) == "-" {
-			num, err := validateInt("Noiselevel", string(noise[1]), Bound{minBound, maxBound})
+			num, err := validateInt("Noiselevel", string(noise[1]), Bound{minNoise, maxNoise})
 			if err != nil {
 				return Bound{}, err
 			}
 			return Bound{0, num}, nil
 		}
-		num, err := validateInt("Noiselevel", string(noise[0]), Bound{minBound, maxBound})
+		num, err := validateInt("Noiselevel", string(noise[0]), Bound{minNoise, maxNoise})
 		if err != nil {
 			return Bound{}, err
 		}
 		return Bound{num, 9}, nil
 	case 1:
-		num, err := validateInt("Noiselevel", string(noise[0]), Bound{minBound, maxBound})
+		if noise == "-" {
+			return Bound{minNoise, maxNoise}, nil
+		}
+		num, err := validateInt("Noiselevel", string(noise[0]), Bound{minNoise, maxNoise})
 		if err != nil {
 			return Bound{}, err
 		}
@@ -129,7 +132,7 @@ func ParseFlags() *Flags {
 			Help:     "Show N number of lines for context",
 			Default:  2,
 			Validate: func(args []string) error {
-				_, err := validateInt("Context", args[0], Bound{minBound, maxBound})
+				_, err := validateInt("Context", args[0], Bound{minNoise, maxNoise})
 				return err
 			},
 		}),
