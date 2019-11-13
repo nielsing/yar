@@ -46,16 +46,14 @@ func AnalyzeRegexDiff(m *Middleware, diffObject *DiffObject) {
 				secret := []int{strings.Index(newDiff, found)}
 				secret = append(secret, secret[0]+len(found))
 
-				newSecret := false
 				secretString := newDiff[secret[0]:secret[1]]
-				if !m.SecretExists(*diffObject.Reponame, secretString) {
+				if *m.Flags.SkipDuplicates && !m.SecretExists(*diffObject.Reponame, secretString) {
 					m.AddSecret(*diffObject.Reponame, secretString)
-					newSecret = true
-				}
-				if newSecret {
 					finding := NewFinding(rule.Reason, secret, diffObject)
 					m.Logger.LogFinding(finding, m, newDiff)
-					break
+				} else if !*m.Flags.SkipDuplicates {
+					finding := NewFinding(rule.Reason, secret, diffObject)
+					m.Logger.LogFinding(finding, m, newDiff)
 				}
 			}
 		}

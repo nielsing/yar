@@ -38,6 +38,7 @@ type Flags struct {
 	NoBare         *bool
 	NoCache        *bool
 	IncludeMembers *bool
+	SkipDuplicates *bool
 	Context        *int
 	CommitDepth    *int
 
@@ -66,6 +67,9 @@ func parseNoiseLevel(noise string) (Bound, error) {
 			return Bound{}, err1
 		} else if err2 != nil {
 			return Bound{}, err2
+		}
+		if upper < lower {
+			return Bound{}, errors.New("Noiselevel must be X-Y such that X <= Y")
 		}
 		return Bound{lower, upper}, nil
 	case 2:
@@ -158,7 +162,7 @@ func ParseFlags() *Flags {
 
 		Noise: parser.String("n", "noise", &argparse.Options{
 			Required: false,
-			Help:     "Specify the maximum noise level of findings to output",
+			Help:     "Specify the range of the noise for rules. Can be specified as up to a certain value (-4), from a certain value (5-), between two values (3-5), just a single value (4) or the whole range (-)",
 			Default:  "-3",
 			Validate: func(args []string) error {
 				_, err := parseNoiseLevel(args[0])
@@ -217,6 +221,12 @@ func ParseFlags() *Flags {
 		IncludeMembers: parser.Flag("", "include-members", &argparse.Options{
 			Required: false,
 			Help:     "Include an organization's members for plunderin'",
+			Default:  false,
+		}),
+
+		SkipDuplicates: parser.Flag("", "skip-duplicates", &argparse.Options{
+			Required: false,
+			Help:     "Skip duplicate secrets within repositories",
 			Default:  false,
 		}),
 

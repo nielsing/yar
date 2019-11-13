@@ -128,8 +128,11 @@ func PrintEntropyFinding(validStrings []string, m *Middleware, diffObject *DiffO
 		if entropy > threshold {
 			context, indexes := FindContext(m, *diffObject.Diff, validString)
 			secretString := context[indexes[0]:indexes[1]]
-			if !m.SecretExists(*diffObject.Reponame, secretString) {
+			if *m.Flags.SkipDuplicates && !m.SecretExists(*diffObject.Reponame, secretString) {
 				m.AddSecret(*diffObject.Reponame, secretString)
+				finding := NewFinding("Entropy Check", indexes, diffObject)
+				m.Logger.LogFinding(finding, m, context)
+			} else if !*m.Flags.SkipDuplicates {
 				finding := NewFinding("Entropy Check", indexes, diffObject)
 				m.Logger.LogFinding(finding, m, context)
 			}
