@@ -54,7 +54,7 @@ func ParseConfig(m *Middleware) {
 	// Parse JSON file and compile regex rules
 	json.Unmarshal([]byte(content), &config)
 	for _, rule := range config.Rules {
-		if rule.Noise > *m.Flags.Noise {
+		if rule.Noise > m.Flags.NoiseLevel.Upper || rule.Noise < m.Flags.NoiseLevel.Lower {
 			continue
 		}
 		regex, err := regexp.Compile(rule.Rule)

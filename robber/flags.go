@@ -11,8 +11,16 @@ import (
 )
 
 const (
-	maxInt = int(^uint(0) >> 1)
+	maxInt   = int(^uint(0) >> 1)
+	minBound = 0
+	maxBound = 9
 )
+
+// Bound struct boxes a user defined integer
+type Bound struct {
+	Lower int
+	Upper int
+}
 
 // Flags struct keeps a hold of all of the CLI arguments that were given.
 type Flags struct {
@@ -21,7 +29,7 @@ type Flags struct {
 	Repo           *string
 	Save           *string
 	CleanUp        *string
-	Noise          *int
+	Noise          *string
 	Config         *os.File
 	Entropy        *bool
 	Both           *bool
@@ -35,22 +43,53 @@ type Flags struct {
 
 	SavePresent    bool
 	CleanUpPresent bool
+	NoiseLevel     Bound
 }
 
-type bound struct {
-	lower int
-	upper int
-}
-
-func validateInt(argname string, arg string, bound *bound) error {
+func validateInt(argname string, arg string, Bound Bound) (int, error) {
 	num, err := strconv.Atoi(arg)
-	if err != nil || num < bound.lower {
-		return fmt.Errorf("%s must be a non-negative integer", argname)
+	if err != nil || num < Bound.Lower {
+		return -1, fmt.Errorf("%s must be a non-negative integer", argname)
 	}
-	if num > bound.upper {
-		return fmt.Errorf("%s must be a number between %d and %d", argname, bound.lower, bound.upper)
+	if num > Bound.Upper {
+		return -1, fmt.Errorf("%s must be a number between %d and %d", argname, Bound.Lower, Bound.Upper)
 	}
-	return nil
+	return num, nil
+}
+
+func parseNoiseLevel(noise string) (Bound, error) {
+	switch length := len(noise); length {
+	case 3:
+		lower, err1 := validateInt("Noiselevel", string(noise[0]), Bound{minBound, maxBound})
+		upper, err2 := validateInt("Noiselevel", string(noise[2]), Bound{minBound, maxBound})
+		if err1 != nil {
+			return Bound{}, err1
+		} else if err2 != nil {
+			return Bound{}, err2
+		}
+		return Bound{lower, upper}, nil
+	case 2:
+		if string(noise[0]) == "-" {
+			num, err := validateInt("Noiselevel", string(noise[1]), Bound{minBound, maxBound})
+			if err != nil {
+				return Bound{}, err
+			}
+			return Bound{0, num}, nil
+		}
+		num, err := validateInt("Noiselevel", string(noise[0]), Bound{minBound, maxBound})
+		if err != nil {
+			return Bound{}, err
+		}
+		return Bound{num, 9}, nil
+	case 1:
+		num, err := validateInt("Noiselevel", string(noise[0]), Bound{minBound, maxBound})
+		if err != nil {
+			return Bound{}, err
+		}
+		return Bound{num, num}, nil
+	default:
+		return Bound{}, errors.New("Noise argument must be in any of these forms:\nX, -X, X-, X-Y")
+	}
 }
 
 func validErr(err error) bool {
@@ -90,7 +129,8 @@ func ParseFlags() *Flags {
 			Help:     "Show N number of lines for context",
 			Default:  2,
 			Validate: func(args []string) error {
-				return validateInt("Context", args[0], &bound{0, 10})
+				_, err := validateInt("Context", args[0], Bound{minBound, maxBound})
+				return err
 			},
 		}),
 
@@ -113,12 +153,13 @@ func ParseFlags() *Flags {
 			Default:  false,
 		}),
 
-		Noise: parser.Int("n", "noise", &argparse.Options{
+		Noise: parser.String("n", "noise", &argparse.Options{
 			Required: false,
 			Help:     "Specify the maximum noise level of findings to output",
-			Default:  3,
+			Default:  "-3",
 			Validate: func(args []string) error {
-				return validateInt("Noiselevel", args[0], &bound{1, 10})
+				_, err := parseNoiseLevel(args[0])
+				return err
 			},
 		}),
 
@@ -127,7 +168,8 @@ func ParseFlags() *Flags {
 			Help:     "Specify the depth limit of commits fetched when cloning",
 			Default:  100000,
 			Validate: func(args []string) error {
-				return validateInt("Depth", args[0], &bound{0, maxInt})
+				_, err := validateInt("Depth", args[0], Bound{0, maxInt})
+				return err
 			},
 		}),
 
@@ -175,9 +217,6 @@ func ParseFlags() *Flags {
 			Default:  false,
 		}),
 
-		SavePresent:    flagPresent("-s", "--save"),
-		CleanUpPresent: flagPresent("", "--cleanup"),
-
 		// If cleanup is set, yar will ignore all other flags and only perform cleanup
 		CleanUp: parser.String("", "cleanup", &argparse.Options{
 			Required: false,
@@ -190,6 +229,10 @@ func ParseFlags() *Flags {
 			Help:     "Yar will save all findings to a specified file",
 			Default:  "findings.json",
 		}),
+
+		// These are hack flags that are proof of bad design on my hand :/
+		SavePresent:    flagPresent("-s", "--save"),
+		CleanUpPresent: flagPresent("", "--cleanup"),
 	}
 
 	if err := parser.Parse(os.Args); err != nil && validErr(err) {
@@ -208,4 +251,6 @@ func validateFlags(flags *Flags, parser *argparse.Parser) {
 	if *flags.Save == "" {
 		*flags.Save = "findings.json"
 	}
+	level, _ := parseNoiseLevel(*flags.Noise)
+	flags.NoiseLevel = level
 }
