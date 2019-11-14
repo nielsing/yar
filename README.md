@@ -94,7 +94,7 @@ export YAR_GITHUB_TOKEN=YOUR_TOKEN_HERE
 
 ### Want to save your findings to a JSON file for later analysis?
 ```
-yar -o orgname --save findings.json
+yar -o orgname --save
 ```
 
 ### Don't like the default colors and want to add your own color settings?
@@ -135,32 +135,46 @@ Like so `export YAR_COLOR_SECRET="hiRed bold"`.
 ## Help
 ```
 usage: yar [-h|--help] [-o|--org "<value>"] [-u|--user "<value>"] [-r|--repo
-           "<value>"] [-s|--save "<value>"] [-c|--context <integer>]
-           [-e|--entropy] [-b|--both] [-f|--forks] [-n|--noise <integer>]
-           [--depth <integer>] [--nobare] [--config <file>] [--cleanup]
-           [--no-context]
+           "<value>"] [-c|--context <integer>] [-e|--entropy] [-b|--both]
+           [-f|--forks] [-n|--noise "<value>"] [--depth <integer>] [--config
+           <file>] [--no-bare] [--no-cache] [--no-context] [--include-members]
+           [--skip-duplicates] [--cleanup "<value>"] [-s|--save "<value>"]
 
            Sail ye seas of git for booty is to be found
 
 Arguments:
 
-  -h  --help        Print help information
-  -o  --org         Organization to plunder
-  -u  --user        User to plunder
-  -r  --repo        Repository to plunder
-  -s  --save        Yar will save all findings to a specified file
-  -c  --context     Show N number of lines for context.
-  -e  --entropy     Search for secrets using entropy analysis. Default: false
-  -b  --both        Search by using both regex and entropy analysis. Overrides
-                    entropy flag.
-  -f  --forks       Specifies whether forked repos are included or not.
-  -n  --noise       Specify the maximum noise level of findings to output.
-      --depth       Specify the depth limit of commits fetched when cloning.
-      --nobare      Clone the whole repository. Default: false
-      --config      JSON file containing yar config.
-      --cleanup     Remove all cloned directories used for caching.
-      --no-context  Only show the secret itself, similar to trufflehog's regex
-                    output. Overrides context flag.
+  -h  --help             Print help information
+  -o  --org              Organization to plunder
+  -u  --user             User to plunder
+  -r  --repo             Repository to plunder
+  -c  --context          Show N number of lines for context. Default: 2
+  -e  --entropy          Search for secrets using entropy analysis. Default:
+                         false
+  -b  --both             Search by using both regex and entropy analysis.
+                         Overrides entropy flag. Default: false
+  -f  --forks            Specifies whether forked repos are included or not.
+                         Default: false
+  -n  --noise            Specify the range of the noise for rules. Can be
+                         specified as up to a certain value (-4), from a
+                         certain value (5-), between two values (3-5), just a
+                         single value (4) or the whole range (-). Default: -4
+      --depth            Specify the depth limit of commits fetched when
+                         cloning. Default: 100000
+      --config           JSON file containing yar config.
+      --no-bare          Clone the whole repository. Default: false
+      --no-cache         Don't load from cache. Default: false
+      --no-context       Only show the secret itself, similar to trufflehog's
+                         regex output. Overrides context flag. Default: false
+      --include-members  Include an organization's members for plunderin'.
+                         Default: false
+      --skip-duplicates  Skip duplicate secrets within repositories. Default:
+                         false
+      --cleanup          Remove specified cloned directory within yar cache
+                         folder. Leave blank to remove the cache folder
+                         completely.
+  -s  --save             Yar will save all findings to a specified file.
+                         Default: findings.json
 ```
 
 ## Acknowledgements
