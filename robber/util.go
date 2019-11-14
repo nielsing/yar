@@ -2,12 +2,10 @@ package robber
 
 import (
 	"context"
-	"encoding/json"
 	"io/ioutil"
 	"math"
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -22,21 +20,9 @@ var (
 	count = 0
 )
 
-type jsonFinding []struct {
-	Reason        string `json:"Reason"`
-	Filepath      string `json:"Filepath"`
-	RepoName      string `json:"RepoName"`
-	Commiter      string `json:"Commiter"`
-	CommitHash    string `json:"CommitHash"`
-	DateOfCommit  string `json:"DateOfCommit"`
-	CommitMessage string `json:"CommitMessage"`
-	Link          string `json:"Link"`
-	Secret        string `json:"Secret"`
-}
-
 // CleanUp deletes all temp directories which were created for cloning of repositories.
 func CleanUp(m *Middleware) {
-	err := os.RemoveAll(path.Join(os.TempDir(), "yar"))
+	err := os.RemoveAll(filepath.Join(os.TempDir(), "yar", *m.Flags.CleanUp))
 	if err != nil {
 		m.Logger.LogWarn("Unable to remove the cache folder!")
 	}
@@ -68,9 +54,8 @@ func GetDir(cloneurl string) (string, bool) {
 	if _, err := os.Stat(cloneurl); !os.IsNotExist(err) {
 		return cloneurl, true
 	}
-	names := strings.Split(cloneurl, "/")
-	parentFolder := names[len(names)-2]
-	childFolder := strings.Replace(names[len(names)-1], ".git", "", -1)
+	parentFolder := filepath.Base(filepath.Dir(cloneurl))
+	childFolder := strings.Replace(filepath.Base(cloneurl), ".git", "", -1)
 	dir := filepath.Join(os.TempDir(), "yar", parentFolder, childFolder)
 	_, err := os.Stat(dir)
 	return dir, !os.IsNotExist(err)
@@ -142,33 +127,16 @@ func PrintEntropyFinding(validStrings []string, m *Middleware, diffObject *DiffO
 		if entropy > threshold {
 			context, indexes := FindContext(m, *diffObject.Diff, validString)
 			secretString := context[indexes[0]:indexes[1]]
-			if !m.SecretExists(*diffObject.Reponame, secretString) {
+			if *m.Flags.SkipDuplicates && !m.SecretExists(*diffObject.Reponame, secretString) {
 				m.AddSecret(*diffObject.Reponame, secretString)
+				finding := NewFinding("Entropy Check", indexes, diffObject)
+				m.Logger.LogFinding(finding, m, context)
+			} else if !*m.Flags.SkipDuplicates {
 				finding := NewFinding("Entropy Check", indexes, diffObject)
 				m.Logger.LogFinding(finding, m, context)
 			}
 		}
 	}
-}
-
-// SaveFindings saves all findings to a JSON file named findings.json
-func SaveFindings(findings []*Finding) {
-	var savedFindings jsonFinding
-	for _, finding := range findings {
-		savedFindings = append(savedFindings, jsonFinding{{
-			Reason:        finding.Reason,
-			Filepath:      finding.Filepath,
-			RepoName:      finding.RepoName,
-			Commiter:      finding.Committer,
-			CommitHash:    finding.CommitHash,
-			DateOfCommit:  finding.DateOfCommit,
-			CommitMessage: finding.CommitMessage,
-			Link:          strings.Join([]string{finding.RepoName, "commit", finding.CommitHash}, "/"),
-			Secret:        finding.Diff[finding.Secret[0]:finding.Secret[1]],
-		}}...)
-	}
-	content, _ := json.MarshalIndent(savedFindings, "", "  ")
-	_ = ioutil.WriteFile("findings.json", content, 0644)
 }
 
 // GetAccessToken retreives access token from env variables and returns an oauth2 client.
@@ -216,4 +184,17 @@ func Min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// WriteToFile writes given string array to the given filename with each
+// instance in the array being line seperated
+func WriteToFile(filename string, values []*string) error {
+	unRefValues := []string{}
+	for _, refValue := range values {
+		unRefValues = append(unRefValues, *refValue)
+	}
+
+	value := []byte(strings.Join(unRefValues, "\n"))
+	err := ioutil.WriteFile(filename, value, 0644)
+	return err
 }

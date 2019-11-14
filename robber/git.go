@@ -1,6 +1,7 @@
 package robber
 
 import (
+	"os"
 	"strings"
 
 	"gopkg.in/src-d/go-git.v4"
@@ -50,7 +51,7 @@ func getCloneOptions(m *Middleware, url string) *git.CloneOptions {
 // and clones the given URL into it.
 func cloneRepo(m *Middleware, url string, cloneFolder string) (*git.Repository, error) {
 	opt := getCloneOptions(m, url)
-	repo, err := git.PlainClone(cloneFolder, true, opt)
+	repo, err := git.PlainClone(cloneFolder, !*m.Flags.NoBare, opt)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +63,7 @@ func cloneRepo(m *Middleware, url string, cloneFolder string) (*git.Repository, 
 // was given and tries to clone it instead.
 func OpenRepo(m *Middleware, path string) (*git.Repository, error) {
 	dir, exists := GetDir(path)
-	if exists {
+	if !*m.Flags.NoCache && !*m.Flags.NoBare && exists {
 		repo, err := git.PlainOpen(dir)
 		if err != nil {
 			return nil, err
@@ -70,6 +71,9 @@ func OpenRepo(m *Middleware, path string) (*git.Repository, error) {
 		return repo, nil
 	}
 
+	if *m.Flags.NoBare || *m.Flags.NoCache {
+		os.RemoveAll(dir)
+	}
 	repo, err := cloneRepo(m, path, dir)
 	if err != nil {
 		return nil, err
@@ -79,7 +83,14 @@ func OpenRepo(m *Middleware, path string) (*git.Repository, error) {
 
 // GetCommits simply traverses a given repository, gathering all commits
 // and then returns a list of them.
-func GetCommits(depth *int, repo *git.Repository) ([]*object.Commit, error) {
+func GetCommits(m *Middleware, repo *git.Repository, reponame string) ([]*object.Commit, error) {
+	defer func() {
+		if r := recover(); r != nil {
+			m.Logger.LogFail("%s is corrupted please run yar --cleanup %s and try again\n",
+				reponame[9:], reponame[9:])
+		}
+	}()
+
 	var commits []*object.Commit
 	ref, err := repo.Head()
 	commitIter, err := repo.Log(&git.LogOptions{From: ref.Hash(), Order: git.LogOrderCommitterTime})
@@ -89,7 +100,7 @@ func GetCommits(depth *int, repo *git.Repository) ([]*object.Commit, error) {
 
 	count := 0
 	commitIter.ForEach(func(c *object.Commit) error {
-		if count == *depth {
+		if count == *m.Flags.CommitDepth {
 			return nil
 		}
 		commits = append(commits, c)

@@ -1,7 +1,9 @@
 package robber
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
@@ -50,6 +52,18 @@ var logColors = map[int]*color.Color{
 	succ:    color.New(color.FgGreen),
 	warn:    color.New(color.FgRed),
 	fail:    color.New(color.FgRed).Add(color.Bold),
+}
+
+type jsonFinding []struct {
+	Reason        string `json:"Reason"`
+	Filepath      string `json:"Filepath"`
+	RepoName      string `json:"RepoName"`
+	Commiter      string `json:"Commiter"`
+	CommitHash    string `json:"CommitHash"`
+	DateOfCommit  string `json:"DateOfCommit"`
+	CommitMessage string `json:"CommitMessage"`
+	Source        string `json:"Source"`
+	Secret        string `json:"Secret"`
 }
 
 // Finding struct contains data of a given secret finding, used for later output of a finding.
@@ -113,6 +127,35 @@ func NewFinding(reason string, secret []int, diffObject *DiffObject) *Finding {
 	return finding
 }
 
+func saveFindingsHelper(repoName string, hash string, filePath string) string {
+	if strings.HasPrefix(repoName, "/tmp") {
+		return fmt.Sprintf("git --git-dir=%s show %s:%s", repoName, hash[:6], filePath)
+	}
+	return strings.Join([]string{repoName, "commit", hash}, "/")
+}
+
+// SaveFindings saves all findings to a JSON file named findings.json
+func SaveFindings(m *Middleware) {
+	var savedFindings jsonFinding
+	for _, finding := range m.Findings {
+		repoName := strings.Replace(finding.RepoName, ".git", "", 1)
+		source := saveFindingsHelper(repoName, finding.CommitHash, finding.Filepath)
+		savedFindings = append(savedFindings, jsonFinding{{
+			Reason:        finding.Reason,
+			Filepath:      finding.Filepath,
+			RepoName:      repoName,
+			Commiter:      finding.Committer,
+			CommitHash:    finding.CommitHash,
+			DateOfCommit:  finding.DateOfCommit,
+			CommitMessage: finding.CommitMessage,
+			Source:        source,
+			Secret:        finding.Diff[finding.Secret[0]:finding.Secret[1]],
+		}}...)
+	}
+	content, _ := json.MarshalIndent(savedFindings, "", "  ")
+	_ = ioutil.WriteFile(*m.Flags.Save, content, 0644)
+}
+
 func (l *Logger) log(level int, format string, a ...interface{}) {
 	l.Lock()
 	defer l.Unlock()
@@ -160,15 +203,15 @@ func (l *Logger) LogFinding(f *Finding, m *Middleware, contextDiff string) {
 		data.Println(f.Filepath)
 	}
 	info.Printf("Repo name: ")
-	data.Println(f.RepoName)
+	data.Println(strings.Replace(f.RepoName, ".git", "", 1))
 	info.Printf("Committer: ")
 	data.Printf("%s (%s)\n", f.Committer, f.Email)
 	info.Printf("Commit hash: ")
 	data.Println(f.CommitHash)
+	info.Printf("View commit: ")
+	data.Printf("git --git-dir=%s show %s:%s\n", repoPath, f.CommitHash[:6], f.Filepath)
 	info.Printf("Date of commit: ")
 	data.Println(f.DateOfCommit)
-	info.Printf("View command: ")
-	data.Printf("git --git-dir=%s show %s:%s\n", repoPath, f.CommitHash[:6], f.Filepath)
 	info.Printf("Commit message: ")
 	data.Printf("%s\n\n", strings.Trim(f.CommitMessage, "\n"))
 	if *m.Flags.NoContext {

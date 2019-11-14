@@ -19,7 +19,7 @@ func main() {
 	go robber.HandleSigInt(m, sigc, kill, finished, cleanup)
 
 	m.Start(kill, finished, cleanup)
-	if *m.Flags.Save {
-		robber.SaveFindings(m.Findings)
+	if m.Flags.SavePresent {
+		robber.SaveFindings(m)
 	}
 }

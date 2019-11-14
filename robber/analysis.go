@@ -13,6 +13,10 @@ const (
 	B64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
 	// Hexchars is used for entropy finding of hex based strings.
 	Hexchars = "1234567890abcdefABCDEF"
+	// Threshold for b64 matching of entropy strings
+	b64Threshold = 4.5
+	// Threshold for hex matching of entropy strings
+	hexThreshold = 3
 )
 
 // AnalyzeEntropyDiff breaks a given diff into words and finds valid base64 and hex
@@ -23,8 +27,8 @@ func AnalyzeEntropyDiff(m *Middleware, diffObject *DiffObject) {
 	for _, word := range words {
 		b64strings := FindValidStrings(word, B64chars)
 		hexstrings := FindValidStrings(word, Hexchars)
-		PrintEntropyFinding(b64strings, m, diffObject, 4.5)
-		PrintEntropyFinding(hexstrings, m, diffObject, 3)
+		PrintEntropyFinding(b64strings, m, diffObject, b64Threshold)
+		PrintEntropyFinding(hexstrings, m, diffObject, hexThreshold)
 	}
 }
 
@@ -42,16 +46,14 @@ func AnalyzeRegexDiff(m *Middleware, diffObject *DiffObject) {
 				secret := []int{strings.Index(newDiff, found)}
 				secret = append(secret, secret[0]+len(found))
 
-				newSecret := false
 				secretString := newDiff[secret[0]:secret[1]]
-				if !m.SecretExists(*diffObject.Reponame, secretString) {
+				if *m.Flags.SkipDuplicates && !m.SecretExists(*diffObject.Reponame, secretString) {
 					m.AddSecret(*diffObject.Reponame, secretString)
-					newSecret = true
-				}
-				if newSecret {
 					finding := NewFinding(rule.Reason, secret, diffObject)
 					m.Logger.LogFinding(finding, m, newDiff)
-					break
+				} else if !*m.Flags.SkipDuplicates {
+					finding := NewFinding(rule.Reason, secret, diffObject)
+					m.Logger.LogFinding(finding, m, newDiff)
 				}
 			}
 		}
@@ -76,7 +78,7 @@ func AnalyzeRepo(m *Middleware, id int, repoch <-chan string, quit chan<- bool, 
 				m.Logger.LogFail("Unable to open repo %s: %s\n", reponame, err)
 			}
 
-			commits, err := GetCommits(m.Flags.CommitDepth, repo)
+			commits, err := GetCommits(m, repo, reponame)
 			if err != nil {
 				m.Logger.LogWarn("Unable to fetch commits for %s: %s\n", reponame, err)
 				return
@@ -134,9 +136,15 @@ func AnalyzeUser(m *Middleware, username string, repoch chan<- string) {
 // AnalyzeOrg simply sends two GET requests to githubs API, one for a given organizations
 // repositories and one for its' members.
 func AnalyzeOrg(m *Middleware, orgname string, repoch chan<- string) {
+	var members []*string
+	if *m.Flags.IncludeMembers {
+		members = GetOrgMembers(m, orgname)
+	} else {
+		members = []*string{}
+	}
 	repos := GetOrgRepos(m, orgname)
-	members := GetOrgMembers(m, orgname)
 	atomic.AddInt32(m.RepoCount, int32(len(repos)))
+
 	for _, repo := range repos {
 		repoch <- *repo
 	}

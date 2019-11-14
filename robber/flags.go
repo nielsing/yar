@@ -3,47 +3,113 @@ package robber
 import (
 	"errors"
 	"fmt"
-	"github.com/akamensky/argparse"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/akamensky/argparse"
 )
 
 const (
-	maxInt = int(^uint(0) >> 1)
+	maxInt   = int(^uint(0) >> 1)
+	minNoise = 0
+	maxNoise = 9
 )
+
+// Bound struct boxes a user defined integer
+type Bound struct {
+	Lower int
+	Upper int
+}
 
 // Flags struct keeps a hold of all of the CLI arguments that were given.
 type Flags struct {
-	Org         *string
-	User        *string
-	Repo        *string
-	Config      *os.File
-	Entropy     *bool
-	Both        *bool
-	Save        *bool
-	NoContext   *bool
-	Forks       *bool
-	CleanUp     *bool
-	Context     *int
-	CommitDepth *int
-	Noise       *int
+	Org            *string
+	User           *string
+	Repo           *string
+	Save           *string
+	CleanUp        *string
+	Noise          *string
+	Config         *os.File
+	Entropy        *bool
+	Both           *bool
+	NoContext      *bool
+	Forks          *bool
+	NoBare         *bool
+	NoCache        *bool
+	IncludeMembers *bool
+	SkipDuplicates *bool
+	Context        *int
+	CommitDepth    *int
+
+	SavePresent    bool
+	CleanUpPresent bool
+	NoiseLevel     Bound
 }
 
-type bound struct {
-	lower int
-	upper int
-}
-
-func validateInt(argname string, arg string, bound *bound) error {
+func validateInt(argname string, arg string, Bound Bound) (int, error) {
 	num, err := strconv.Atoi(arg)
-	if err != nil || num < bound.lower {
-		return fmt.Errorf("%s must be a non-negative integer", argname)
+	if err != nil || num < Bound.Lower {
+		return -1, fmt.Errorf("%s must be a non-negative integer", argname)
 	}
-	if num > bound.upper {
-		return fmt.Errorf("%s must be a number between %d and %d", argname, bound.lower, bound.upper)
+	if num > Bound.Upper {
+		return -1, fmt.Errorf("%s must be a number between %d and %d", argname, Bound.Lower, Bound.Upper)
 	}
-	return nil
+	return num, nil
+}
+
+func parseNoiseLevel(noise string) (Bound, error) {
+	switch length := len(noise); length {
+	case 3:
+		lower, err1 := validateInt("Noiselevel", string(noise[0]), Bound{minNoise, maxNoise})
+		upper, err2 := validateInt("Noiselevel", string(noise[2]), Bound{minNoise, maxNoise})
+		if err1 != nil {
+			return Bound{}, err1
+		} else if err2 != nil {
+			return Bound{}, err2
+		}
+		if upper < lower {
+			return Bound{}, errors.New("Noiselevel must be X-Y such that X <= Y")
+		}
+		return Bound{lower, upper}, nil
+	case 2:
+		if string(noise[0]) == "-" {
+			num, err := validateInt("Noiselevel", string(noise[1]), Bound{minNoise, maxNoise})
+			if err != nil {
+				return Bound{}, err
+			}
+			return Bound{0, num}, nil
+		}
+		num, err := validateInt("Noiselevel", string(noise[0]), Bound{minNoise, maxNoise})
+		if err != nil {
+			return Bound{}, err
+		}
+		return Bound{num, 9}, nil
+	case 1:
+		if noise == "-" {
+			return Bound{minNoise, maxNoise}, nil
+		}
+		num, err := validateInt("Noiselevel", string(noise[0]), Bound{minNoise, maxNoise})
+		if err != nil {
+			return Bound{}, err
+		}
+		return Bound{num, num}, nil
+	default:
+		return Bound{}, errors.New("Noise argument must be in any of these forms:\nX, -X, X-, X-Y")
+	}
+}
+
+func validErr(err error) bool {
+	return err.Error() != "not enough arguments for -s|--save" && err.Error() != "not enough arguments for --cleanup"
+}
+
+func flagPresent(shortHand string, name string) bool {
+	for _, val := range os.Args {
+		if val == shortHand || val == name {
+			return true
+		}
+	}
+	return false
 }
 
 // ParseFlags parses CLI arguments and returns them.
@@ -53,19 +119,16 @@ func ParseFlags() *Flags {
 		Org: parser.String("o", "org", &argparse.Options{
 			Required: false,
 			Help:     "Organization to plunder",
-			Default:  "",
 		}),
 
 		User: parser.String("u", "user", &argparse.Options{
 			Required: false,
 			Help:     "User to plunder",
-			Default:  "",
 		}),
 
 		Repo: parser.String("r", "repo", &argparse.Options{
 			Required: false,
 			Help:     "Repository to plunder",
-			Default:  "",
 		}),
 
 		Context: parser.Int("c", "context", &argparse.Options{
@@ -73,7 +136,8 @@ func ParseFlags() *Flags {
 			Help:     "Show N number of lines for context",
 			Default:  2,
 			Validate: func(args []string) error {
-				return validateInt("Context", args[0], &bound{0, 10})
+				_, err := validateInt("Context", args[0], Bound{minNoise, maxNoise})
+				return err
 			},
 		}),
 
@@ -96,19 +160,14 @@ func ParseFlags() *Flags {
 			Default:  false,
 		}),
 
-		Noise: parser.Int("n", "noise", &argparse.Options{
+		Noise: parser.String("n", "noise", &argparse.Options{
 			Required: false,
-			Help:     "Specify the maximum noise level of findings to output",
-			Default:  3,
+			Help:     "Specify the range of the noise for rules. Can be specified as up to a certain value (-4), from a certain value (5-), between two values (3-5), just a single value (4) or the whole range (-)",
+			Default:  "-3",
 			Validate: func(args []string) error {
-				return validateInt("Noiselevel", args[0], &bound{1, 5})
+				_, err := parseNoiseLevel(args[0])
+				return err
 			},
-		}),
-
-		Save: parser.Flag("s", "save", &argparse.Options{
-			Required: false,
-			Help:     "Yar will save all findings to a file named findings.json if this flag is set",
-			Default:  false,
 		}),
 
 		CommitDepth: parser.Int("", "depth", &argparse.Options{
@@ -116,7 +175,8 @@ func ParseFlags() *Flags {
 			Help:     "Specify the depth limit of commits fetched when cloning",
 			Default:  100000,
 			Validate: func(args []string) error {
-				return validateInt("Depth", args[0], &bound{0, maxInt})
+				_, err := validateInt("Depth", args[0], Bound{0, maxInt})
+				return err
 			},
 		}),
 
@@ -138,10 +198,16 @@ func ParseFlags() *Flags {
 			},
 		}),
 
-		// If cleanup is set, yar will ignore all other flags and only perform cleanup
-		CleanUp: parser.Flag("", "cleanup", &argparse.Options{
+		// Will not load from cache
+		NoBare: parser.Flag("", "no-bare", &argparse.Options{
 			Required: false,
-			Help:     "Remove all cloned directories used for caching",
+			Help:     "Clone the whole repository",
+			Default:  false,
+		}),
+
+		NoCache: parser.Flag("", "no-cache", &argparse.Options{
+			Required: false,
+			Help:     "Don't load from cache",
 			Default:  false,
 		}),
 
@@ -151,9 +217,38 @@ func ParseFlags() *Flags {
 			Help:     "Only show the secret itself, similar to trufflehog's regex output. Overrides context flag",
 			Default:  false,
 		}),
+
+		IncludeMembers: parser.Flag("", "include-members", &argparse.Options{
+			Required: false,
+			Help:     "Include an organization's members for plunderin'",
+			Default:  false,
+		}),
+
+		SkipDuplicates: parser.Flag("", "skip-duplicates", &argparse.Options{
+			Required: false,
+			Help:     "Skip duplicate secrets within repositories",
+			Default:  false,
+		}),
+
+		// If cleanup is set, yar will ignore all other flags and only perform cleanup
+		CleanUp: parser.String("", "cleanup", &argparse.Options{
+			Required: false,
+			Help:     "Remove specified cloned directory within yar cache folder. Leave blank to remove the cache folder completely",
+			Default:  "",
+		}),
+
+		Save: parser.String("s", "save", &argparse.Options{
+			Required: false,
+			Help:     "Yar will save all findings to a specified file",
+			Default:  "findings.json",
+		}),
+
+		// These are hack flags that are proof of bad design on my hand :/
+		SavePresent:    flagPresent("-s", "--save"),
+		CleanUpPresent: flagPresent("", "--cleanup"),
 	}
 
-	if err := parser.Parse(os.Args); err != nil {
+	if err := parser.Parse(os.Args); err != nil && validErr(err) {
 		fmt.Print(parser.Usage(err))
 		os.Exit(1)
 	}
@@ -162,8 +257,13 @@ func ParseFlags() *Flags {
 }
 
 func validateFlags(flags *Flags, parser *argparse.Parser) {
-	if *flags.User == "" && *flags.Repo == "" && *flags.Org == "" && !*flags.CleanUp {
+	if *flags.User == "" && *flags.Repo == "" && *flags.Org == "" && !flags.CleanUpPresent {
 		fmt.Print(parser.Usage("Must give atleast one of org/user/repo"))
 		os.Exit(1)
 	}
+	if *flags.Save == "" {
+		*flags.Save = "findings.json"
+	}
+	level, _ := parseNoiseLevel(*flags.Noise)
+	flags.NoiseLevel = level
 }

@@ -94,7 +94,7 @@ export YAR_GITHUB_TOKEN=YOUR_TOKEN_HERE
 
 ### Want to save your findings to a JSON file for later analysis?
 ```
-yar -o orgname --save
+yar -o orgname --save findings.json
 ```
 
 ### Don't like the default colors and want to add your own color settings?
@@ -135,34 +135,32 @@ Like so `export YAR_COLOR_SECRET="hiRed bold"`.
 ## Help
 ```
 usage: yar [-h|--help] [-o|--org "<value>"] [-u|--user "<value>"] [-r|--repo
-           "<value>"] [-c|--context <integer>] [-e|--entropy] [-b|--both]
-           [-f|--forks] [-n|--noise <integer>] [-s|--save] [--depth <integer>]
-           [--config <file>] [--cleanup] [--no-context]
+           "<value>"] [-s|--save "<value>"] [-c|--context <integer>]
+           [-e|--entropy] [-b|--both] [-f|--forks] [-n|--noise <integer>]
+           [--depth <integer>] [--nobare] [--config <file>] [--cleanup]
+           [--no-context]
 
            Sail ye seas of git for booty is to be found
 
 Arguments:
 
   -h  --help        Print help information
-  -o  --org         Organization to plunder. 
-  -u  --user        User to plunder.
-  -r  --repo        Repository to plunder.
-  -c  --context     Show N number of lines for context. Default: 2
+  -o  --org         Organization to plunder
+  -u  --user        User to plunder
+  -r  --repo        Repository to plunder
+  -s  --save        Yar will save all findings to a specified file
+  -c  --context     Show N number of lines for context.
   -e  --entropy     Search for secrets using entropy analysis. Default: false
   -b  --both        Search by using both regex and entropy analysis. Overrides
-                    entropy flag. Default: false
+                    entropy flag.
   -f  --forks       Specifies whether forked repos are included or not.
-                    Default: false
   -n  --noise       Specify the maximum noise level of findings to output.
-                    Default: 3
-  -s  --save        Yar will save all findings to a file named findings.json if
-                    this flag is set. Default: false
       --depth       Specify the depth limit of commits fetched when cloning.
-                    Default: 100000
+      --nobare      Clone the whole repository. Default: false
       --config      JSON file containing yar config.
       --cleanup     Remove all cloned directories used for caching.
       --no-context  Only show the secret itself, similar to trufflehog's regex
-                    output. Overrides context flag. Default: false
+                    output. Overrides context flag.
 ```
 
 ## Acknowledgements
