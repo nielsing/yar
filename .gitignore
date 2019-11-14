@@ -1,4 +1,7 @@
 yar
+yar_linux_amd64
+yar_macos_amd64
+yar_windows_amd64
 findings.json
 
 .vscode/
