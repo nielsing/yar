@@ -163,7 +163,7 @@ func ParseFlags() *Flags {
 		Noise: parser.String("n", "noise", &argparse.Options{
 			Required: false,
 			Help:     "Specify the range of the noise for rules. Can be specified as up to a certain value (-4), from a certain value (5-), between two values (3-5), just a single value (4) or the whole range (-)",
-			Default:  "-4",
+			Default:  "-3",
 			Validate: func(args []string) error {
 				_, err := parseNoiseLevel(args[0])
 				return err

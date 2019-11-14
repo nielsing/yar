@@ -158,7 +158,7 @@ Arguments:
   -n  --noise            Specify the range of the noise for rules. Can be
                          specified as up to a certain value (-4), from a
                          certain value (5-), between two values (3-5), just a
-                         single value (4) or the whole range (-). Default: -4
+                         single value (4) or the whole range (-). Default: -3
       --depth            Specify the depth limit of commits fetched when
                          cloning. Default: 100000
       --config           JSON file containing yar config.
