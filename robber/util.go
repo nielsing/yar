@@ -54,9 +54,8 @@ func GetDir(cloneurl string) (string, bool) {
 	if _, err := os.Stat(cloneurl); !os.IsNotExist(err) {
 		return cloneurl, true
 	}
-	names := strings.Split(cloneurl, "/")
-	parentFolder := names[len(names)-2]
-	childFolder := strings.Replace(names[len(names)-1], ".git", "", -1)
+	parentFolder := filepath.Base(filepath.Dir(cloneurl))
+	childFolder := strings.Replace(filepath.Base(cloneurl), ".git", "", -1)
 	dir := filepath.Join(os.TempDir(), "yar", parentFolder, childFolder)
 	_, err := os.Stat(dir)
 	return dir, !os.IsNotExist(err)
