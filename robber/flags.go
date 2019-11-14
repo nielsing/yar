@@ -162,7 +162,7 @@ func ParseFlags() *Flags {
 
 		Noise: parser.String("n", "noise", &argparse.Options{
 			Required: false,
-			Help:     "Specify the range of the noise for rules. Can be specified as up to a certain value (-4), from a certain value (5-), between two values (3-5), just a single value (4) or the whole range (-)",
+			Help:     "Specify the range of the noise for rules. Can be specified as up to (and including) a certain value (-4), from a certain value (5-), between two values (3-5), just a single value (4) or the whole range (-)",
 			Default:  "-3",
 			Validate: func(args []string) error {
 				_, err := parseNoiseLevel(args[0])
@@ -170,17 +170,17 @@ func ParseFlags() *Flags {
 			},
 		}),
 
-		CommitDepth: parser.Int("", "depth", &argparse.Options{
+		CommitDepth: parser.Int("d", "depth", &argparse.Options{
 			Required: false,
 			Help:     "Specify the depth limit of commits fetched when cloning",
-			Default:  100000,
+			Default:  10000,
 			Validate: func(args []string) error {
 				_, err := validateInt("Depth", args[0], Bound{0, maxInt})
 				return err
 			},
 		}),
 
-		Config: parser.File("", "config", os.O_RDONLY, 0600, &argparse.Options{
+		Config: parser.File("C", "config", os.O_RDONLY, 0600, &argparse.Options{
 			Required: false,
 			Help:     "JSON file containing yar config",
 			Default:  filepath.Join(GetGoPath(), "src", "github.com", "Furduhlutur", "yar", "config", "yarconfig.json"),

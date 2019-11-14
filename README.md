@@ -25,6 +25,10 @@ Just make sure that you have the GOPATH environment variable set in your preferr
 ```
 yar -o orgname
 ```
+You can also include the members of the organization with:
+```
+yar -o orgname --include-members
+```
 
 ### Want to search for secrets in a users repository?
 ```
@@ -132,13 +136,43 @@ YAR_COLOR_FAIL    -> Color of fatal warnings.
 ```
 Like so `export YAR_COLOR_SECRET="hiRed bold"`.
 
+## Extra Knowledge
+There are some design decisions which might be good to know about. Yar saves all cloned github repos
+in a folder named yar within the temp directory. Yar then tries to load github repos from this cache
+by default, if you don't want to load from cache then you can add the `--no-cache` flag.
+
+Yar also clones bare repos by default, if you want to get all files within a repo and not just the 
+metadata then you can add the `--no-bare` flag.
+
+If you want to remove repos from cache then you can use the `--cleanup` flag. This flag 
+either removes the whole cache if no folder was specified or just removes the specified folder. The
+folder structure within the cache folder is like so:
+```
+/yar
+|--- /User1
+|  |--- /Repo1
+|  |--- /Repo2
+|
+|--- /User2
+|  |--- /Repo1
+|  |--- /Repo2
+
+```
+So you can run `--cleanup User1` to remove the cache of User1 or `--cleanup User1/Repo1` to clean up
+Repo1 of User1. You can think of the flag as a wrapper around `rm -r /tmp/yar/{USER_INPUT}`.
+
+Finally yar goes 10000 commits deep by default and goes through them in order of time
+(oldest to newest). This depth is configurable so if you ever want to cover more or fewer commits
+simply add the `--depth` flag with the depth you want.
+
 ## Help
 ```
 usage: yar [-h|--help] [-o|--org "<value>"] [-u|--user "<value>"] [-r|--repo
            "<value>"] [-c|--context <integer>] [-e|--entropy] [-b|--both]
-           [-f|--forks] [-n|--noise "<value>"] [--depth <integer>] [--config
-           <file>] [--no-bare] [--no-cache] [--no-context] [--include-members]
-           [--skip-duplicates] [--cleanup "<value>"] [-s|--save "<value>"]
+           [-f|--forks] [-n|--noise "<value>"] [-d|--depth <integer>]
+           [-C|--config <file>] [--no-bare] [--no-cache] [--no-context]
+           [--include-members] [--skip-duplicates] [--cleanup "<value>"]
+           [-s|--save "<value>"]
 
            Sail ye seas of git for booty is to be found
 
@@ -156,12 +190,13 @@ Arguments:
   -f  --forks            Specifies whether forked repos are included or not.
                          Default: false
   -n  --noise            Specify the range of the noise for rules. Can be
-                         specified as up to a certain value (-4), from a
-                         certain value (5-), between two values (3-5), just a
-                         single value (4) or the whole range (-). Default: -3
-      --depth            Specify the depth limit of commits fetched when
-                         cloning. Default: 100000
-      --config           JSON file containing yar config.
+                         specified as up to (and including) a certain value
+                         (-4), from a certain value (5-), between two values
+                         (3-5), just a single value (4) or the whole range (-).
+                         Default: -3
+  -d  --depth            Specify the depth limit of commits fetched when
+                         cloning. Default: 10000
+  -C  --config           JSON file containing yar config.
       --no-bare          Clone the whole repository. Default: false
       --no-cache         Don't load from cache. Default: false
       --no-context       Only show the secret itself, similar to trufflehog's
