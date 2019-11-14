@@ -21,7 +21,7 @@ go get github.com/Furduhlutur/yar
 Just make sure that you have the GOPATH environment variable set in your preferred shell rc and that the $GOPATH/bin directory is in your PATH. More info [here](https://golang.org/doc/code.html#GOPATH).
 
 ## Usage
-### Want to search for secrets in an organization?
+### Want to search for secrets within an organization?
 ```
 yar -o orgname
 ```
@@ -30,23 +30,23 @@ You can also include the members of the organization with:
 yar -o orgname --include-members
 ```
 
-### Want to search for secrets in a users repository?
+### Want to search for secrets within a users repositories?
 ```
 yar -u username
 ```
 
-### Want to search for secrets in a single repository?
+### Want to search for secrets within a single repository?
 ```
-yar -r repolink
+yar -r https://github.com/User/Repo
 ```
 or if you have already cloned the repository
 ```
-yar -r repopath
+yar -r /path/to/.git/folder
 ```
 
-### Want to search for secrets in an organization, for a user and a repository?
+### Want to search for secrets within an organization, a user and a repository?
 ```
-yar -o orgname -u username -r reponame
+yar -o orgname -u username -r https://github.com/User/Repo
 ```
 
 ### Have your own predefined rules?
