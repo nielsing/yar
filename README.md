@@ -13,7 +13,7 @@ it will print it out for you to further assess.
 Yar searches for secrets either by regex, entropy or both, the choice is yours! Inspired by other git secret grabbers.
 
 ## Installation
-1. Make sure you have the GOPATH environemtn variable set in your preferred shell rc and that the $GOPATH/bin directory is in your PATH. More info [here](https://golang.org/doc/code.html#GOPATH).
+1. Make sure you have the GOPATH environment variable set in your preferred shell rc and that the $GOPATH/bin directory is in your PATH. More info [here](https://golang.org/doc/code.html#GOPATH).
 2. You can install this by running `go get github.com/Furduhlutur/yar`
 3. Or you can download the latest release of Yar for your operating system [here](https://github.com/Furduhlutur/yar/releases). Just make sure you have the yarconfig.json file as well in $GOPATH/src/github.com/Furduhlutur/yar/config.
 
