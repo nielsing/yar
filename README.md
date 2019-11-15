@@ -46,6 +46,34 @@ yar -r /path/to/.git/folder
 yar -o orgname -u username -r https://github.com/User/Repo
 ```
 
+### Getting too much/not enough noise?
+All rules are marked with a noise level from 0 to 9. Noise levels from 0 to 4 are considered secrets while noise levels from 5 to 9 are considered reconnaissance info (emails, IPs, etc...). You can decide which noise levels yar searches for, the default is to (and including 3).
+
+Search for all secrets with noise level 4 or less
+```
+yar -r https://github.com/User/Repo -n -4
+```
+
+Search for all secrets with noise level 6 or more
+```
+yar -r https://github.com/User/Repo -n 6-
+```
+
+Search for all secrets from 1 to (and including) 3.
+```
+yar -r https://github.com/User/Repo -n 1-3
+```
+
+Search for all secrets with noise level exactly 7
+```
+yar -r https://github.com/User/Repo -n 7
+```
+
+Search for all secrets with any noise level
+```
+yar -r https://github.com/User/Repo -n -
+```
+
 ### Have your own predefined rules?
 Rules are stored in a JSON file with the following format:
 ```
