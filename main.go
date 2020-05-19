@@ -4,7 +4,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/Furduhlutur/yar/robber"
+	"github.com/nielsing/yar/robber"
 )
 
 func main() {

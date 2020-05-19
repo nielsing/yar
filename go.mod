@@ -1,4 +1,4 @@
-module github.com/Furduhlutur/yar
+module github.com/nielsing/yar
 
 go 1.13
 

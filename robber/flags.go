@@ -183,7 +183,7 @@ func ParseFlags() *Flags {
 		Config: parser.File("C", "config", os.O_RDONLY, 0600, &argparse.Options{
 			Required: false,
 			Help:     "JSON file containing yar config",
-			Default:  filepath.Join(GetGoPath(), "src", "github.com", "Furduhlutur", "yar", "config", "yarconfig.json"),
+			Default:  filepath.Join(GetGoPath(), "src", "github.com", "nielsing", "yar", "config", "yarconfig.json"),
 			Validate: func(args []string) error {
 				filename := args[0]
 				_, err := os.Stat(filename)

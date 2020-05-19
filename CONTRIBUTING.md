@@ -2,7 +2,7 @@
 Feature ideas, bug fixes and general refactoring of code is welcome!
 
 ## Did you stumble upon a bug?
-+ Ensure the bug has not already been reported by searching the [issues](https://github.com/Furduhlutur/yar/issues) tab.
++ Ensure the bug has not already been reported by searching the [issues](https://github.com/nielsing/yar/issues) tab.
 + If there is no issue addressing the problem then please open a new one. When submitting an issue for a bug be sure to include 
 a title that explains what it is in short, i.e. "Yar crashes when I do X" or "I was scanning repo X and yar crashed" or "There is a one by off error in X". Also make sure to
 include a clear description. A clear description includes a stack trace (if Yar crashed) and the command you were running.
