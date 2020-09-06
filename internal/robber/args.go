@@ -15,7 +15,8 @@ const (
 	maxNoise = 9
 )
 
-// TODO: Comment
+// validateInt validates whether a given integer argument is within the range specified by the lower
+// and upper arguments
 func validateInt(argname, arg string, lower, upper int) (int, error) {
 	num, err := strconv.Atoi(arg)
 	if err != nil {
@@ -28,7 +29,8 @@ func validateInt(argname, arg string, lower, upper int) (int, error) {
 	return num, nil
 }
 
-// TODO: Comment
+// validateFile validates whetheer a given string argument is a file that is on the file system and
+// the user can read it.
 func validateFile(argname, filename string) error {
 	if filename == "" {
 		return nil
@@ -50,33 +52,42 @@ type ClearCmd struct {
 	Cache string `arg:"positional" help:"Remove specified directory within yar cache folder. Leave blank to remove the cache folder completely" default:""`
 }
 
+// GitCmd handles the 'git' subcommand which allows a user to analyze a generic git repository found
+// either on the user's file system or at a given URL.
 type GitCmd struct {
 	Repo   []string `arg:"-r" help:"repository to plunder"`
 	Depth  int      `arg:"-d" help:"Specify the depth limit of commits fetched when cloning" default:"10000"`
 	NoBare bool     `arg:"--no-bare" help:"Clone the whole repository"`
 }
 
+// GithubCmd handles the 'github' subcommand which allows a user to analyze a repo, user or org
+// found on Github.
 type GithubCmd struct {
+	GitCmd
 	Org            []string `arg:"-o" help:"organization to plunder"`
 	User           []string `arg:"-u" help:"user to plunder"`
-	Repo           []string `arg:"-r" help:"repository to plunder"`
 	Forks          bool     `arg:"-f" help:"specifies whether forked repos are included or not"`
-	Depth          int      `arg:"-d" help:"Specify the depth limit of commits fetched when cloning" default:"10000"`
-	NoBare         bool     `arg:"--no-bare" help:"Clone the whole repository"`
 	IncludeMembers bool     `arg:"--include-members" help:"Include an organization's members for plunderin'"`
 }
 
-// TODO: Implemented!
-type GitlabCmd struct{}
+// GitlabCmd handles the 'gitlab' subcommand which allows a user to analyze a repo, user or org
+// found on Gitlab.
+type GitlabCmd struct {
+	GitCmd
+}
 
-// TODO: Implemented!
-type BitbucketCmd struct{}
+// BitbucketCmd handles the 'gitlab' subcommand which allows a user to analyze a repo, user or org
+// found on Bitbucket.
+type BitbucketCmd struct {
+	GitCmd
+}
 
-// TODO: Explain Noise command
+// Noise struct is used to define the 'noise' argument.
 type Noise struct {
 	Lower, Upper int
 }
 
+// UnmarshalText of the Noise struct is used to define how the 'noise' argument should be parsed.
 func (n *Noise) UnmarshalText(b []byte) error {
 	s := string(b)
 	switch length := len(s); length {
@@ -129,6 +140,7 @@ func (n *Noise) UnmarshalText(b []byte) error {
 	}
 }
 
+// Args struct defines the arguments found within yar.
 type Args struct {
 	// General flags
 	Both      bool   `arg:"-b" help:"search by using both regex and entropy analysis"`
@@ -136,6 +148,7 @@ type Args struct {
 	Noise     Noise  `arg:"-n" help:"specify the range of the noise for rules. Can be specified as up to (and including) a certain value (-4), from a certain value (5-), between two values (3-5), just a single value (4) or the whole range (-)" default:"-5" placeholder:"X-Y"`
 	Context   int    `arg:"-c" help:"show N number of lines for context" default:"2" placeholder:"N"`
 	Entropy   bool   `arg:"-e" help:"search for secrets using entropy analysis"`
+	Verbose   bool   `arg:"-v" help:"print verbose information"`
 	NoCache   bool   `arg:"--no-cache" help:"don't load from cache"`
 	NoContext bool   `arg:"--no-context" help:"only show the secret itself. Overrides context flag"`
 
@@ -150,10 +163,12 @@ type Args struct {
 	Config string `arg:"env" help:"JSON file containing yar config" placeholder:"FILE"`
 }
 
+// Version defines the version for yar.
 func (Args) Version() string {
 	return "yar 2.0.0"
 }
 
+// Description outputs the general description of yar.
 func (Args) Description() string {
 	return "Sail ye seas of internets for booty is to be found"
 }
@@ -176,6 +191,5 @@ func parseArgs() *Args {
 	if err != nil {
 		parser.Fail(err.Error())
 	}
-
 	return parsedArgs
 }

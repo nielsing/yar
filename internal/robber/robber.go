@@ -13,6 +13,6 @@ func NewRobber() *Robber {
 		Args: parseArgs(),
 	}
 	r.Config = newConfig(r)
-	r.Logger = newLogger()
+	r.Logger = newLogger(r.Args.Verbose)
 	return r
 }

@@ -75,15 +75,21 @@ func parseColors(r *Robber, config jsonConfig) {
 // Logger handles all logging.
 type Logger struct {
 	sync.Mutex
+	verbose bool
 }
 
-func newLogger() *Logger {
-	return &Logger{}
+func newLogger(verbose bool) *Logger {
+	return &Logger{
+		verbose: verbose,
+	}
 }
 
 func (l *Logger) log(level int, format string, a ...interface{}) {
 	l.Lock()
 	defer l.Unlock()
+	if level == verbose && !l.verbose {
+		return
+	}
 
 	if c, ok := logColors[level]; ok {
 		c.Printf(format, a...)
