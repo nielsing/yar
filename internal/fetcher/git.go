@@ -16,7 +16,7 @@ func getCloneOptions(depth int, username, secret, url string) *git.CloneOptions 
 	if username != "" {
 		return &git.CloneOptions{
 			URL:   url,
-			Depth: depth + 1, // There is an off by one error in Depth field.
+			Depth: depth + 1, // There is an off by one error in the Depth field.
 			Auth: &http.BasicAuth{
 				Username: username,
 				Password: secret,
@@ -26,7 +26,7 @@ func getCloneOptions(depth int, username, secret, url string) *git.CloneOptions 
 	if secret != "" {
 		return &git.CloneOptions{
 			URL:   url,
-			Depth: depth + 1, // There is an off by one error in Depth field.
+			Depth: depth + 1, // There is an off by one error in the Depth field.
 			Auth: &http.BasicAuth{
 				Username: "NotEmpty", // https://pkg.go.dev/github.com/go-git/go-git/v5?tab=doc#PlainClone
 				Password: secret,
@@ -35,7 +35,7 @@ func getCloneOptions(depth int, username, secret, url string) *git.CloneOptions 
 	}
 	return &git.CloneOptions{
 		URL:   url,
-		Depth: depth + 1, // There is an off by one error in Depth field.
+		Depth: depth + 1, // There is an off by one error in the Depth field.
 	}
 }
 

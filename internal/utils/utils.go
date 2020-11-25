@@ -40,7 +40,7 @@ func getCacheHelper(r *robber.Robber, location string) (string, string) {
 	end := ""
 	base := ""
 	if r.Args.Git != nil {
-		base = "Git"
+		base = "git"
 		website := ""
 		url, err := giturls.Parse(location)
 		if err != nil {
@@ -52,23 +52,23 @@ func getCacheHelper(r *robber.Robber, location string) (string, string) {
 		filepath.Join(end, website, gitFolder)
 	}
 	if r.Args.Github != nil {
-		base = "Github"
+		base = "github"
 		user := filepath.Base(filepath.Dir(location))
 		repo := strings.Replace(filepath.Base(location), ".git", "", -1)
 		filepath.Join(end, user, repo)
 	}
 	if r.Args.Gitlab != nil {
-		base = "Gitlab"
+		base = "gitlab"
 		end = "Unimplemented!"
 	}
 	if r.Args.Bitbucket != nil {
-		base = "Bitbucket"
+		base = "bitbucket"
 		end = "Unimplemented!"
 	}
 	return base, end
 }
 
-// GetCacheLocation returns the location of a given location
+// GetCacheLocation returns the cache location and whether it exists or not.
 func GetCacheLocation(r *robber.Robber, location string) (string, bool) {
 	if _, err := os.Stat(location); !os.IsNotExist(err) {
 		return location, true
@@ -77,4 +77,40 @@ func GetCacheLocation(r *robber.Robber, location string) (string, bool) {
 	cache := filepath.Join(os.TempDir(), "yar", baseFolder, endFolder)
 	_, err := os.Stat(cache)
 	return cache, !os.IsNotExist(err)
+}
+
+// ChunkString chunks a given string `s` into an array of string chunks of size `chunkSize`.
+func ChunkString(s string, chunkSize int) []string {
+	if chunkSize >= len(s) {
+		return []string{s}
+	}
+
+	var chunks []string
+	chunk := make([]rune, chunkSize)
+	currSize := 0
+
+	for _, r := range s {
+		chunk[currSize] = r
+		currSize++
+		if currSize == chunkSize {
+			chunks = append(chunks, string(chunk))
+			currSize = 0
+		}
+	}
+	if currSize > 0 {
+		chunks = append(chunks, string(chunk[:currSize]))
+	}
+	return chunks
+}
+
+// SplitAndChunkString splits a given string `s` into substrings separated by `sep` and then chunks
+// the splits into chunks of size `chunkSize`.
+func SplitAndChunkString(s, sep string, chunkSize int) []string {
+	var chunks []string
+	splits := strings.Split(s, sep)
+
+	for _, split := range splits {
+		chunks = append(chunks, ChunkString(split, chunkSize)...)
+	}
+	return chunks
 }
