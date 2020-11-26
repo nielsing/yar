@@ -367,6 +367,15 @@ type Rule struct {
 }
 
 // TODO: Comment
+func loadDefaultRules(r *Robber, c *Config) {
+	for _, rule := range allRules {
+		if rule.Noise > r.Args.Noise.Upper || rule.Noise < r.Args.Noise.Lower {
+			c.Rules = append(c.Rules, rule)
+		}
+	}
+}
+
+// TODO: Comment
 func parseRules(r *Robber, config jsonConfig) []*Rule {
 	var rules []*Rule
 	for _, rule := range config.Rules {
@@ -402,17 +411,16 @@ func parseBlacklist(r *Robber, config jsonConfig) []*regexp.Regexp {
 }
 
 // TODO: Comment
+// User can specify a config file that contains only a blacklist, only color settings, only
+// blacklist and color settings, and completely empty.
+// User can not specify a config file with no rules, then the default rules will simply be loaded
 func parseConfig(r *Robber) *Config {
 	var config jsonConfig
 
 	// If the Config argument is not set, add rules within the specified noise range to the
 	// defaultConfig.
 	if r.Args.Config == "" {
-		for _, rule := range allRules {
-			if rule.Noise > r.Args.Noise.Upper || rule.Noise < r.Args.Noise.Lower {
-				defaultConfig.Rules = append(defaultConfig.Rules, rule)
-			}
-		}
+		loadDefaultRules(r, defaultConfig)
 		return defaultConfig
 	}
 
@@ -428,7 +436,11 @@ func parseConfig(r *Robber) *Config {
 	// Parse JSON file and compile regex rules
 	json.Unmarshal([]byte(content), &config)
 	parsedConfig := &Config{}
-	parsedConfig.Rules = parseRules(r, config)
+	if len(config.Rules) == 0 {
+		loadDefaultRules(r, parsedConfig)
+	} else {
+		parsedConfig.Rules = parseRules(r, config)
+	}
 	parsedConfig.Blacklist = parseBlacklist(r, config)
 	if len(config.Colors) > 0 {
 		parseColors(r, config)
