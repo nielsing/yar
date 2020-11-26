@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -113,4 +114,15 @@ func SplitAndChunkString(s, sep string, chunkSize int) []string {
 		chunks = append(chunks, ChunkString(split, chunkSize)...)
 	}
 	return chunks
+}
+
+func WriteToFile(filename string, values []*string) error {
+	unRefValues := []string{}
+	for _, refValue := range values {
+		unRefValues = append(unRefValues, *refValue)
+	}
+
+	value := []byte(strings.Join(unRefValues, "\n"))
+	err := ioutil.WriteFile(filename, value, 0644)
+	return err
 }

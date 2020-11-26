@@ -147,6 +147,7 @@ type Args struct {
 	Save      string `arg:"-s" help:"yar will save all findings to a specified file" default:"findings.json" placeholder:"FILE"`
 	Noise     Noise  `arg:"-n" help:"specify the range of the noise for rules. Can be specified as up to (and including) a certain value (-4), from a certain value (5-), between two values (3-5), just a single value (4) or the whole range (-)" default:"-5" placeholder:"X-Y"`
 	Context   int    `arg:"-c" help:"show N number of lines for context" default:"2" placeholder:"N"`
+	Workers   int    `arg:"-w" help:"Number of workers, default is number of CPUs" placeholder:"W"`
 	Entropy   bool   `arg:"-e" help:"search for secrets using entropy analysis"`
 	Verbose   bool   `arg:"-v" help:"print verbose information"`
 	NoCache   bool   `arg:"--no-cache" help:"don't load from cache"`

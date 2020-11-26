@@ -1,8 +1,9 @@
 package analyzer
 
 import (
-	"github.com/nielsing/yar/internal/robber"
 	"math"
+
+	"github.com/nielsing/yar/internal/robber"
 )
 
 func entropyCheck(data string) float64 {
@@ -39,4 +40,15 @@ func RegexSearch(r *robber.Robber, line string) string {
 // TODO: Comment
 func EntropySearch(r *robber.Robber, line string) string {
 	return ""
+}
+
+func AnalyzeRepos(r *robber.Robber, input chan string) <-chan string {
+	c := make(chan string)
+	go func() {
+		for repo := range input {
+			c <- repo
+		}
+		close(c)
+	}()
+	return c
 }

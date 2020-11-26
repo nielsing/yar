@@ -1,9 +1,13 @@
 package subcommands
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
+	"sync"
 
+	"github.com/nielsing/yar/internal/analyzer"
 	"github.com/nielsing/yar/internal/robber"
 )
 
@@ -18,7 +22,50 @@ func Clear(r *robber.Robber) {
 
 // Git handles the 'git' subcommand
 func Git(r *robber.Robber) {
-	r.Logger.LogFail("Unimplemented!\n")
+	// Boilerplate
+	numWorkers := r.Args.Workers
+	if numWorkers == 0 {
+		numWorkers = runtime.NumCPU()
+	}
+	input := make(chan string, 100)
+	var workers = make([]<-chan string, numWorkers, numWorkers)
+
+	// Start all workers
+	for worker := 0; worker < numWorkers; worker++ {
+		workers[worker] = analyzer.AnalyzeRepos(r, input)
+	}
+
+	// Fetch all repos
+	for _, repo := range r.Args.Git.Repo {
+		input <- repo
+	}
+	close(input)
+
+	c := fanIn(workers...)
+
+	for value := range c {
+		fmt.Println(value)
+	}
+}
+
+func fanIn(workers ...<-chan string) <-chan string {
+	out := make(chan string)
+	var wg sync.WaitGroup
+	wg.Add(len(workers))
+
+	for _, c := range workers {
+		go func(c <-chan string) {
+			for v := range c {
+				out <- v
+			}
+			wg.Done()
+		}(c)
+	}
+	go func() {
+		wg.Wait()
+		close(out)
+	}()
+	return out
 }
 
 // Github handles the 'github' subcommand

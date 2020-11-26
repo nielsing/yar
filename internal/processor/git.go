@@ -48,7 +48,7 @@ func getParentTree(commit *object.Commit) (*object.Tree, error) {
 
 // GetCommitChanges gets the changes of a commit by comparing it to its'
 // parent commit tree.
-func GetCommitChanges(commit *object.Commit) (object.Changes, error) {
+func getCommitChanges(commit *object.Commit) (object.Changes, error) {
 	commitTree, err := commit.Tree()
 	if err != nil {
 		return nil, err
@@ -78,8 +78,7 @@ func GetDiffObjects(r *robber.Robber, repo *git.Repository, reponame string) ([]
 	}()
 
 	var diffObjects []*DiffObject
-	ref, err := repo.Head()
-	commitIter, err := repo.Log(&git.LogOptions{From: ref.Hash(), Order: git.LogOrderCommitterTime})
+	commitIter, err := repo.Log(&git.LogOptions{All: true})
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +89,9 @@ func GetDiffObjects(r *robber.Robber, repo *git.Repository, reponame string) ([]
 		if count == r.Args.Git.Depth {
 			break
 		}
-		changes, err := GetCommitChanges(commit)
+		count++
+
+		changes, err := getCommitChanges(commit)
 		if err != nil {
 			r.Logger.LogVerbose("Unable to get commit changes for commit %s in repo %s. Skipping...",
 				commit.Hash.String(), reponame)

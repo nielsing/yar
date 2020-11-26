@@ -3,12 +3,12 @@ package fetcher
 import (
 	"context"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/nielsing/yar/internal/robber"
+	"github.com/nielsing/yar/internal/utils"
 
 	"github.com/google/go-github/v32/github"
 	"golang.org/x/oauth2"
@@ -168,7 +168,7 @@ func GetOrgMembers(r *robber.Robber, c *github.Client, orgname string) []*string
 	}
 	folderPath := filepath.Join(os.TempDir(), "yar", orgname)
 	os.MkdirAll(folderPath, 0777)
-	err := WriteToFile(filepath.Join(folderPath, "members.txt"), usernames)
+	err := utils.WriteToFile(filepath.Join(folderPath, "members.txt"), usernames)
 	if err != nil {
 		r.Logger.LogWarn("Failed to save org members of %s due to: %s\n", orgname, err)
 	}
