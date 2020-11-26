@@ -5,10 +5,10 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"sync"
 
 	"github.com/nielsing/yar/internal/analyzer"
 	"github.com/nielsing/yar/internal/robber"
+	"github.com/nielsing/yar/internal/utils"
 )
 
 // Clear handles the 'clear' subcommand
@@ -28,7 +28,7 @@ func Git(r *robber.Robber) {
 		numWorkers = runtime.NumCPU()
 	}
 	input := make(chan string, 100)
-	var workers = make([]<-chan string, numWorkers, numWorkers)
+	var workers = make([]chan string, numWorkers, numWorkers)
 
 	// Start all workers
 	for worker := 0; worker < numWorkers; worker++ {
@@ -41,31 +41,11 @@ func Git(r *robber.Robber) {
 	}
 	close(input)
 
-	c := fanIn(workers...)
+	c := utils.Multiplex(workers...)
 
 	for value := range c {
 		fmt.Println(value)
 	}
-}
-
-func fanIn(workers ...<-chan string) <-chan string {
-	out := make(chan string)
-	var wg sync.WaitGroup
-	wg.Add(len(workers))
-
-	for _, c := range workers {
-		go func(c <-chan string) {
-			for v := range c {
-				out <- v
-			}
-			wg.Done()
-		}(c)
-	}
-	go func() {
-		wg.Wait()
-		close(out)
-	}()
-	return out
 }
 
 // Github handles the 'github' subcommand

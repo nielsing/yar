@@ -42,7 +42,7 @@ func EntropySearch(r *robber.Robber, line string) string {
 	return ""
 }
 
-func AnalyzeRepos(r *robber.Robber, input chan string) <-chan string {
+func AnalyzeRepos(r *robber.Robber, input chan string) chan string {
 	c := make(chan string)
 	go func() {
 		for repo := range input {
