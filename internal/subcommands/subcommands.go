@@ -1,14 +1,16 @@
 package subcommands
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
+	"sync"
 
 	"github.com/nielsing/yar/internal/analyzer"
+	"github.com/nielsing/yar/internal/fetcher"
+	"github.com/nielsing/yar/internal/processor"
 	"github.com/nielsing/yar/internal/robber"
-	"github.com/nielsing/yar/internal/utils"
 )
 
 // Clear handles the 'clear' subcommand
@@ -23,29 +25,41 @@ func Clear(r *robber.Robber) {
 // Git handles the 'git' subcommand
 func Git(r *robber.Robber) {
 	// Boilerplate
-	numWorkers := r.Args.Workers
-	if numWorkers == 0 {
-		numWorkers = runtime.NumCPU()
+	numAnalyzers := r.Args.Workers
+	if numAnalyzers == 0 {
+		numAnalyzers = runtime.NumCPU()
 	}
-	input := make(chan string, 100)
-	var workers = make([]chan string, numWorkers, numWorkers)
+	input := make(chan *processor.DiffObject, 1000)
+	var wg sync.WaitGroup
+	var analyzers = make([]chan *processor.DiffObject, numAnalyzers, numAnalyzers)
 
-	// Start all workers
-	for worker := 0; worker < numWorkers; worker++ {
-		workers[worker] = analyzer.AnalyzeRepos(r, input)
+	// Start all analyzers
+	for a := 0; a < numAnalyzers; a++ {
+		analyzers[a] = analyzer.AnalyzeDiffs(r, input)
 	}
+	secrets := processor.Multiplex(analyzers...)
+	go func() {
+		wg.Add(1)
+		for value := range secrets {
+			// The secrets channel will send secrets instead of diffs once the secret analysis is ready
+			r.Logger.LogInfo("Received Diff %s with %d lines\n", *value.Diff, len(strings.Split(*value.Diff, "\n")))
+		}
+		wg.Done()
+	}()
 
-	// Fetch all repos
-	for _, repo := range r.Args.Git.Repo {
-		input <- repo
+	// Fetcher
+	repos := fetcher.RepoGenerator(r, r.Args.Git.Repo)
+
+	// Processor
+	for repo := range repos {
+		diffs, _ := processor.GetDiffObjects(r, repo, "TODO: FIX!")
+		// Send off processed data to analyzers
+		for _, diff := range diffs {
+			input <- diff
+		}
 	}
 	close(input)
-
-	c := utils.Multiplex(workers...)
-
-	for value := range c {
-		fmt.Println(value)
-	}
+	wg.Wait()
 }
 
 // Github handles the 'github' subcommand

@@ -2,6 +2,7 @@ package processor
 
 import (
 	"strings"
+	"sync"
 
 	"github.com/nielsing/yar/internal/robber"
 	"github.com/nielsing/yar/internal/utils"
@@ -150,4 +151,26 @@ func getFilepath(file diff.FilePatch) string {
 		return from.Path()
 	}
 	return to.Path()
+}
+
+// Multiplex multiplexes multiple input channels into a single output channel.
+// Taken from here: https://medium.com/justforfunc/two-ways-of-merging-n-channels-in-go-43c0b57cd1de
+func Multiplex(ch ...chan *DiffObject) chan *DiffObject {
+	out := make(chan *DiffObject)
+	var wg sync.WaitGroup
+	wg.Add(len(ch))
+
+	for _, c := range ch {
+		go func(c <-chan *DiffObject) {
+			for v := range c {
+				out <- v
+			}
+			wg.Done()
+		}(c)
+	}
+	go func() {
+		wg.Wait()
+		close(out)
+	}()
+	return out
 }

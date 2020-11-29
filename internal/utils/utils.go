@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"github.com/nielsing/yar/internal/robber"
 
@@ -127,26 +126,4 @@ func WriteToFile(filename string, values []*string) error {
 	value := []byte(strings.Join(unRefValues, "\n"))
 	err := ioutil.WriteFile(filename, value, 0644)
 	return err
-}
-
-// Multiplex multiplexes multiple input channels into a single output channel.
-// Taken from here: https://medium.com/justforfunc/two-ways-of-merging-n-channels-in-go-43c0b57cd1de
-func Multiplex(ch ...chan string) chan string {
-	out := make(chan string)
-	var wg sync.WaitGroup
-	wg.Add(len(ch))
-
-	for _, c := range ch {
-		go func(c <-chan string) {
-			for v := range c {
-				out <- v
-			}
-			wg.Done()
-		}(c)
-	}
-	go func() {
-		wg.Wait()
-		close(out)
-	}()
-	return out
 }

@@ -70,3 +70,22 @@ func OpenRepo(r *robber.Robber, location string) (*git.Repository, error) {
 	}
 	return repo, nil
 }
+
+// TODO: Comment
+func RepoGenerator(r *robber.Robber, repos []string) chan *git.Repository {
+	c := make(chan *git.Repository)
+
+	go func() {
+		for _, repo := range repos {
+			r.Logger.LogInfo("Fetching %s...\n", repo)
+			repo, err := OpenRepo(r, repo)
+			if err != nil {
+				r.Logger.LogFail("wat")
+			}
+			c <- repo
+		}
+		close(c)
+	}()
+
+	return c
+}

@@ -3,6 +3,7 @@ package analyzer
 import (
 	"math"
 
+	"github.com/nielsing/yar/internal/processor"
 	"github.com/nielsing/yar/internal/robber"
 )
 
@@ -42,10 +43,11 @@ func EntropySearch(r *robber.Robber, line string) string {
 	return ""
 }
 
-func AnalyzeRepos(r *robber.Robber, input chan string) chan string {
-	c := make(chan string)
+func AnalyzeDiffs(r *robber.Robber, diff chan *processor.DiffObject) chan *processor.DiffObject {
+	c := make(chan *processor.DiffObject)
 	go func() {
-		for repo := range input {
+		for repo := range diff {
+			// TODO: Analyze a single diff for secrets
 			c <- repo
 		}
 		close(c)
