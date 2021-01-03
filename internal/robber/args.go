@@ -55,7 +55,7 @@ type ClearCmd struct {
 // GitCmd handles the 'git' subcommand which allows a user to analyze a generic git repository found
 // either on the user's file system or at a given URL.
 type GitCmd struct {
-	Repo   []string `arg:"-r" help:"repository to plunder"`
+	Repo   []string `arg:"-r" help:"Repository to plunder"`
 	Depth  int      `arg:"-d" help:"Specify the depth limit of commits fetched when cloning" default:"10000"`
 	NoBare bool     `arg:"--no-bare" help:"Clone the whole repository"`
 }
@@ -64,9 +64,9 @@ type GitCmd struct {
 // found on Github.
 type GithubCmd struct {
 	GitCmd
-	Org            []string `arg:"-o" help:"organization to plunder"`
-	User           []string `arg:"-u" help:"user to plunder"`
-	Forks          bool     `arg:"-f" help:"specifies whether forked repos are included or not"`
+	Org            []string `arg:"-o" help:"Organization to plunder"`
+	User           []string `arg:"-u" help:"User to plunder"`
+	Forks          bool     `arg:"-f" help:"Specifies whether forked repos are included or not"`
 	IncludeMembers bool     `arg:"--include-members" help:"Include an organization's members for plunderin'"`
 }
 
@@ -143,22 +143,22 @@ func (n *Noise) UnmarshalText(b []byte) error {
 // Args struct defines the arguments found within yar.
 type Args struct {
 	// General flags
-	Both      bool   `arg:"-b" help:"search by using both regex and entropy analysis"`
-	Save      string `arg:"-s" help:"yar will save all findings to a specified file" default:"findings.json" placeholder:"FILE"`
-	Noise     Noise  `arg:"-n" help:"specify the range of the noise for rules. Can be specified as up to (and including) a certain value (-4), from a certain value (5-), between two values (3-5), just a single value (4) or the whole range (-)" default:"-5" placeholder:"X-Y"`
-	Context   int    `arg:"-c" help:"show N number of lines for context" default:"2" placeholder:"N"`
+	Both      bool   `arg:"-b" help:"Search by using both regex and entropy analysis"`
+	Save      string `arg:"-s" help:"Yar will save all findings to a specified file" default:"findings.json" placeholder:"FILE"`
+	Noise     Noise  `arg:"-n" help:"Specify the range of the noise for rules. Can be specified as up to (and including) a certain value (-4), from a certain value (5-), between two values (3-5), just a single value (4) or the whole range (-)" default:"-5" placeholder:"X-Y"`
+	Context   int    `arg:"-c" help:"Show N number of lines for context" default:"2" placeholder:"N"`
 	Workers   int    `arg:"-w" help:"Number of workers, default is number of CPUs" placeholder:"W"`
-	Entropy   bool   `arg:"-e" help:"search for secrets using entropy analysis"`
-	Verbose   bool   `arg:"-v" help:"print verbose information"`
-	NoCache   bool   `arg:"--no-cache" help:"don't load from cache"`
-	NoContext bool   `arg:"--no-context" help:"only show the secret itself. Overrides context flag"`
+	Entropy   bool   `arg:"-e" help:"Search for secrets using entropy analysis"`
+	Verbose   bool   `arg:"-v" help:"Print verbose information"`
+	NoCache   bool   `arg:"--no-cache" help:"Don't load from cache"`
+	NoContext bool   `arg:"--no-context" help:"Only show the secret itself. Overrides context flag"`
 
 	// Subcommands
-	Clear     *ClearCmd     `arg:"subcommand:clear" help:"unimplemented!"`
-	Git       *GitCmd       `arg:"subcommand:git" help:"unimplemented!"`
-	Github    *GithubCmd    `arg:"subcommand:github" help:"unimplemented!"`
-	Gitlab    *GitlabCmd    `arg:"subcommand:gitlab" help:"unimplemented!"`
-	Bitbucket *BitbucketCmd `arg:"subcommand:bitbucket" help:"unimplemented!"`
+	Clear     *ClearCmd     `arg:"subcommand:clear" help:"Unimplemented!"`
+	Git       *GitCmd       `arg:"subcommand:git" help:"Unimplemented!"`
+	Github    *GithubCmd    `arg:"subcommand:github" help:"Unimplemented!"`
+	Gitlab    *GitlabCmd    `arg:"subcommand:gitlab" help:"Unimplemented!"`
+	Bitbucket *BitbucketCmd `arg:"subcommand:bitbucket" help:"Unimplemented!"`
 
 	// Environment commands
 	Config string `arg:"env" help:"JSON file containing yar config" placeholder:"FILE"`
